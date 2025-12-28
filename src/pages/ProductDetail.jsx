@@ -62,7 +62,7 @@ function ProductDetail({ products, user }) {
                         <h1 className="text-3xl font-black text-slate-900 leading-tight mt-3">{product.title}</h1>
                         <div className="flex items-center gap-1.5 text-slate-400 mt-3"><MapPin size={16} /><span className="text-sm font-bold">{product.city || 'Lieu inconnu'}</span></div>
                     </div>
-                    <div className="text-3xl font-black text-indigo-600">{product.price}€</div>
+                    <div className="text-3xl font-black text-indigo-600">{product.price} FCFA</div>
                 </div>
 
                 <div className="h-px bg-slate-100 w-full mb-8" />

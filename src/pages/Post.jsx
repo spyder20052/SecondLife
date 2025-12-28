@@ -189,7 +189,7 @@ function Post({ user }) {
             <div className="flex flex-col gap-6">
                 <Input label="Titre" placeholder="Veste vintage..." value={title} onChange={setTitle} />
                 <div className="grid grid-cols-2 gap-4">
-                    <Input label="Prix" type="number" placeholder="00" value={price} onChange={setPrice} />
+                    <Input label="Prix (FCFA)" type="number" placeholder="00" value={price} onChange={setPrice} />
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Catégorie</label>
                         <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-4 font-bold text-slate-800 outline-none">

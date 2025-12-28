@@ -119,7 +119,7 @@ function Profile({ user, products }) {
                                 <div className="w-16 h-16 rounded-2xl bg-slate-50 overflow-hidden"><img src={p.imageUrl} alt="" className="w-full h-full object-cover" /></div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-black text-slate-800 truncate text-sm">{p.title}</h4>
-                                    <p className="text-indigo-600 font-black text-sm">{p.price}€</p>
+                                    <p className="text-indigo-600 font-black text-sm">{p.price} FCFA</p>
                                 </div>
                                 <div className="p-3 bg-slate-50 text-slate-400 rounded-xl"><ChevronRight size={18} /></div>
                             </div>

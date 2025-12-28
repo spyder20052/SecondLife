@@ -43,7 +43,7 @@ function Home({ products, searchQuery, setSearchQuery, categoryFilter, setCatego
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-200"><Package size={48} /></div>
                             )}
-                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl text-sm font-black text-indigo-600 shadow-lg">{product.price}€</div>
+                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl text-sm font-black text-indigo-600 shadow-lg">{product.price} FCFA</div>
                         </div>
                         <div className="mt-3 px-2">
                             <h3 className="font-bold text-slate-800 line-clamp-1 text-sm group-hover:text-indigo-600 transition-colors">{product.title}</h3>

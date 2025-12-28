@@ -60,7 +60,7 @@ function Discover() {
             </div>
             <div className="p-4">
                 <h3 className="font-black text-slate-800 text-sm mb-1 leading-tight">{product.title}</h3>
-                <p className="text-indigo-600 font-bold text-xs">{product.price}€</p>
+                <p className="text-indigo-600 font-bold text-xs">{product.price} FCFA</p>
                 <div className="mt-2 flex gap-1 flex-wrap">
                     <span className="text-[9px] px-2 py-1 bg-slate-50 text-slate-400 rounded-lg font-bold uppercase tracking-wide">{product.category}</span>
                 </div>
