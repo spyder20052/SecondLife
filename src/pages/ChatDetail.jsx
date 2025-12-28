@@ -180,7 +180,7 @@ function ChatDetail({ user }) {
                             <Wallet size={24} />
                         </button>
                     )}
-                    <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message..." className="flex-1 bg-slate-50 rounded-2xl px-5 py-4 font-medium outline-none" />
+                    <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message..." className="flex-1 min-w-0 bg-slate-50 rounded-2xl px-5 py-4 font-medium outline-none" />
                     <button type="submit" className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-100 active:scale-90 flex-shrink-0">
                         <Send size={24} />
                     </button>

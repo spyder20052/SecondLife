@@ -92,11 +92,14 @@ export default function App() {
   const showNav = !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
   const showHeader = !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
 
+  // Pages that need full height without parent padding/scroll
+  const isFullScreen = ['/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path));
+
   return (
-    <div className="max-w-md mx-auto h-screen bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative">
+    <div className="max-w-md mx-auto h-screen sm:h-[100dvh] bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative">
       {showHeader && <Header user={user} />}
 
-      <main className="flex-1 overflow-y-auto pb-24 scroll-smooth">
+      <main className={isFullScreen ? "flex-1 overflow-hidden h-full relative" : "flex-1 overflow-y-auto pb-24 scroll-smooth"}>
         <Routes>
           <Route path="/" element={
             <Home
