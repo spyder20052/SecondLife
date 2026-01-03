@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, Camera, Wallet, X, Check } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { collection, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db, appId } from '../firebase';
 import { compressImage } from '../utils/image';
 import { useToast } from '../components/Toast';
@@ -40,7 +40,19 @@ function ChatDetail({ user }) {
                     m.sellerId === activeChat.sellerId
                 )
                 .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
             setMessages(msgs);
+
+            // Mark unread messages as read
+            msgs.forEach(msg => {
+                if (msg.senderId !== user.uid && (!msg.readBy || !msg.readBy.includes(user.uid))) {
+                    const msgRef = doc(db, 'artifacts', appId, 'public', 'data', 'messages', msg.id);
+                    updateDoc(msgRef, {
+                        readBy: arrayUnion(user.uid)
+                    }).catch(err => console.error('Error marking message as read:', err));
+                }
+            });
+
             // Scroll to bottom
             setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
         });
@@ -79,7 +91,8 @@ function ChatDetail({ user }) {
                 content: newMessage,
                 type: imageFile ? 'image' : 'text',
                 imageUrl: contentImage,
-                timestamp: serverTimestamp()
+                timestamp: serverTimestamp(),
+                readBy: [user.uid] // Sender has read their own message
             });
             setNewMessage("");
             cancelImage();
@@ -98,7 +111,8 @@ function ChatDetail({ user }) {
                 participants: [activeChat.buyerId, activeChat.sellerId],
                 content: "Demande de paiement envoyée",
                 type: 'payment_request',
-                timestamp: serverTimestamp()
+                timestamp: serverTimestamp(),
+                readBy: [user.uid]
             });
             setShowPaymentModal(false);
         } catch (err) { console.error(err); } finally { setSending(false); }
@@ -118,7 +132,8 @@ function ChatDetail({ user }) {
                 participants: [activeChat.buyerId, activeChat.sellerId],
                 content: "Paiement effectué ! L'article est vendu.",
                 type: 'payment_confirmed',
-                timestamp: serverTimestamp()
+                timestamp: serverTimestamp(),
+                readBy: [user.uid]
             });
             addToast("Paiement effectué !", "success");
         } catch (err) { console.error(err); } finally { setSending(false); }

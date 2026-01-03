@@ -3,7 +3,7 @@ import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { COLORS } from '../constants';
 
-function BottomNav({ user }) {
+function BottomNav({ user, unreadCount = 0 }) {
     const location = useLocation();
     const navigate = useNavigate();
     const currentPath = location.pathname;
@@ -20,13 +20,20 @@ function BottomNav({ user }) {
             <NavButton active={currentPath === '/'} icon={Home} label="Accueil" to="/" />
             <NavButton active={currentPath === '/discover'} icon={Search} label="Découvrir" to="/discover" />
             <NavButton active={currentPath === '/post'} icon={PlusCircle} label="Vendre" to="/post" onClick={(e) => checkAccess(e, '/post')} special />
-            <NavButton active={currentPath === '/messages'} icon={MessageCircle} label="Messages" to="/messages" onClick={(e) => checkAccess(e, '/messages')} />
+            <NavButton
+                active={currentPath === '/messages'}
+                icon={MessageCircle}
+                label="Messages"
+                to="/messages"
+                onClick={(e) => checkAccess(e, '/messages')}
+                badge={unreadCount}
+            />
             <NavButton active={currentPath === '/profile'} icon={User} label="Profil" to="/profile" />
         </nav>
     );
 }
 
-function NavButton({ active, icon: Icon, label, to, onClick, special = false }) {
+function NavButton({ active, icon: Icon, label, to, onClick, special = false, badge = 0 }) {
     if (special) return (
         <Link to={to} onClick={onClick} className="flex flex-col items-center -mt-12 group">
             <div className={`w-16 h-16 rounded-[24px] bg-gradient-to-br ${COLORS.gradient} flex items-center justify-center text-white shadow-2xl shadow-indigo-300 transform transition-all group-active:scale-90 group-hover:rotate-6`}>
@@ -37,9 +44,15 @@ function NavButton({ active, icon: Icon, label, to, onClick, special = false }) 
     );
 
     return (
-        <Link to={to} onClick={onClick} className="flex flex-col items-center gap-1.5 group">
-            <div className={`transition-all ${active ? 'text-indigo-600 scale-110' : 'text-slate-300 group-hover:text-slate-500'}`}>
+        <Link to={to} onClick={onClick} className="flex flex-col items-center gap-1.5 group relative">
+            <div className={`transition-all relative ${active ? 'text-indigo-600 scale-110' : 'text-slate-300 group-hover:text-slate-500'}`}>
                 <Icon size={24} strokeWidth={active ? 2.5 : 2} />
+                {/* Notification Badge */}
+                {badge > 0 && (
+                    <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 shadow-lg animate-pulse">
+                        {badge > 99 ? '99+' : badge}
+                    </span>
+                )}
             </div>
             <span className={`text-[9px] font-black uppercase tracking-wider transition-all ${active ? 'text-indigo-600' : 'text-slate-300'}`}>{label}</span>
         </Link>
@@ -47,3 +60,4 @@ function NavButton({ active, icon: Icon, label, to, onClick, special = false }) 
 }
 
 export default BottomNav;
+

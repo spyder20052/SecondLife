@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { auth, db, appId } from './firebase';
+import { useToast } from './components/Toast';
 
 // Components
 import Header from './components/Header';
@@ -21,10 +22,12 @@ import Auth from './pages/Auth';
 import LandingPage from './pages/LandingPage';
 
 export default function App() {
+  const { addToast } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [conversations, setConversations] = useState([]);
+  const prevConversationsRef = useRef([]);
 
   // Shared state for Home/Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,20 +75,44 @@ export default function App() {
     return () => unsubProducts();
   }, []);
 
-  // Messages (Private)
+  // Messages (Private) with notification support
   useEffect(() => {
     if (!user) {
       setConversations([]);
+      prevConversationsRef.current = [];
       return;
     }
     const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
     const unsubMessages = onSnapshot(messagesRef, (snapshot) => {
       const allMsgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const userConversations = allMsgs.filter(m => m.participants?.includes(user.uid));
+
+      // Check for new messages (not sent by current user and not already seen)
+      const prevIds = new Set(prevConversationsRef.current.map(m => m.id));
+      const isOnChatPage = location.pathname.startsWith('/chat/detail');
+
+      userConversations.forEach(msg => {
+        // New message from someone else, not on chat page
+        if (!prevIds.has(msg.id) && msg.senderId !== user.uid && !isOnChatPage && prevConversationsRef.current.length > 0) {
+          const senderName = user.uid === msg.sellerId ? msg.buyerName : msg.sellerName;
+          addToast(`💬 ${senderName || 'Nouveau message'}: ${msg.content?.substring(0, 30) || 'Image'}${msg.content?.length > 30 ? '...' : ''}`, 'info');
+        }
+      });
+
+      prevConversationsRef.current = userConversations;
       setConversations(userConversations);
     }, (err) => console.error("Erreur Firestore (Messages):", err));
     return () => unsubMessages();
-  }, [user]);
+  }, [user, location.pathname, addToast]);
+
+  // Calculate unread messages count - MUST be before any conditional returns!
+  const unreadCount = useMemo(() => {
+    if (!user || user.isAnonymous) return 0;
+    return conversations.filter(msg =>
+      msg.senderId !== user.uid &&
+      (!msg.readBy || !msg.readBy.includes(user.uid))
+    ).length;
+  }, [conversations, user]);
 
   if (loading) return <Loader />;
 
@@ -136,7 +163,7 @@ export default function App() {
         </Routes>
       </main>
 
-      {showNav && <BottomNav user={user} />}
+      {showNav && <BottomNav user={user} unreadCount={unreadCount} />}
     </div>
   );
 }
