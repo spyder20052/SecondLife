@@ -24,7 +24,10 @@ function ProductDetail({ products, user }) {
             buyerId: user.uid,
             productTitle: product.title,
             sellerName: product.sellerName || 'Vendeur',
-            buyerName: user.displayName || 'Acheteur'
+            buyerName: user.displayName || 'Acheteur',
+            // Email fields for notifications (if available)
+            sellerEmail: product.sellerEmail || null,
+            buyerEmail: user.email || null
         };
 
         navigate('/chat/detail', { state: { activeChat: chatData } });

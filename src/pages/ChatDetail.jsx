@@ -6,6 +6,7 @@ import { db, appId } from '../firebase';
 import { compressImage } from '../utils/image';
 import { useToast } from '../components/Toast';
 import Button from '../components/Button';
+import { sendMessageNotificationEmail } from '../services/emailService';
 
 function ChatDetail({ user }) {
     const { addToast } = useToast();
@@ -94,6 +95,22 @@ function ChatDetail({ user }) {
                 timestamp: serverTimestamp(),
                 readBy: [user.uid] // Sender has read their own message
             });
+
+            // Send email notification to recipient (if email available)
+            const recipientEmail = isSeller ? activeChat.buyerEmail : activeChat.sellerEmail;
+            const recipientName = isSeller ? activeChat.buyerName : activeChat.sellerName;
+            const senderName = user.displayName || (isSeller ? 'Vendeur' : 'Acheteur');
+
+            if (recipientEmail) {
+                sendMessageNotificationEmail({
+                    toEmail: recipientEmail,
+                    toName: recipientName,
+                    fromName: senderName,
+                    message: newMessage || 'Image envoyée',
+                    productTitle: activeChat.productTitle
+                }).catch(err => console.log('Email notification skipped:', err));
+            }
+
             setNewMessage("");
             cancelImage();
         } catch (err) { console.error(err); } finally { setSending(false); }

@@ -141,6 +141,7 @@ function Post({ user }) {
             } else {
                 productData.sellerId = user.uid;
                 productData.sellerName = user.displayName || 'Membre';
+                productData.sellerEmail = user.email || null; // For email notifications
                 productData.createdAt = serverTimestamp();
                 const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
                 await addDoc(productsRef, productData);
