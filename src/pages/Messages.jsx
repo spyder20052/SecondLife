@@ -5,22 +5,83 @@ import { useNavigate } from 'react-router-dom';
 function Messages({ user, conversations }) {
     const navigate = useNavigate();
 
+    // Group conversations and find the correct names using senderId
     const uniqueConversations = useMemo(() => {
         const map = new Map();
+
+        // First pass: group all messages by conversation
+        const conversationGroups = new Map();
         conversations.forEach(msg => {
             const key = [msg.buyerId, msg.sellerId, msg.productId].sort().join('_');
-            if (!map.has(key) || (msg.timestamp?.seconds || 0) > (map.get(key).timestamp?.seconds || 0)) map.set(key, msg);
+            if (!conversationGroups.has(key)) {
+                conversationGroups.set(key, []);
+            }
+            conversationGroups.get(key).push(msg);
         });
+
+        // Second pass: for each conversation, find the correct names
+        conversationGroups.forEach((msgs, key) => {
+            // Sort by timestamp to get the latest message
+            msgs.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            const latestMsg = msgs[0];
+
+            // Find the correct buyer name: look for a message sent BY the buyer
+            // (senderId === buyerId means the buyer sent this message)
+            let correctBuyerName = null;
+            let correctSellerName = null;
+
+            for (const msg of msgs) {
+                // If this message was sent by the buyer, use buyerName from it
+                if (msg.senderId === msg.buyerId && msg.buyerName && msg.buyerName !== 'Acheteur') {
+                    correctBuyerName = msg.buyerName;
+                }
+                // If this message was sent by the seller, use sellerName from it
+                if (msg.senderId === msg.sellerId && msg.sellerName && msg.sellerName !== 'Vendeur') {
+                    correctSellerName = msg.sellerName;
+                }
+                // Stop early if we found both
+                if (correctBuyerName && correctSellerName) break;
+            }
+
+            // Fallback: try to get names from any message
+            if (!correctBuyerName) {
+                for (const msg of msgs) {
+                    if (msg.buyerName && msg.buyerName !== 'Acheteur') {
+                        correctBuyerName = msg.buyerName;
+                        break;
+                    }
+                }
+            }
+            if (!correctSellerName) {
+                for (const msg of msgs) {
+                    if (msg.sellerName && msg.sellerName !== 'Vendeur') {
+                        correctSellerName = msg.sellerName;
+                        break;
+                    }
+                }
+            }
+
+            map.set(key, {
+                ...latestMsg,
+                _correctBuyerName: correctBuyerName,
+                _correctSellerName: correctSellerName
+            });
+        });
+
         return Array.from(map.values()).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
     }, [conversations]);
 
     if (!user) return null;
 
     const handleSelectChat = (conv) => {
-        // Sending chat details via state to ChatDetail
+        // Sending chat details via state to ChatDetail with corrected names
         navigate('/chat/detail', {
             state: {
-                activeChat: conv
+                activeChat: {
+                    ...conv,
+                    buyerName: conv._correctBuyerName || conv.buyerName || 'Acheteur',
+                    sellerName: conv._correctSellerName || conv.sellerName || 'Vendeur'
+                }
             }
         });
     };
@@ -32,7 +93,10 @@ function Messages({ user, conversations }) {
                 {uniqueConversations.length > 0 ? (
                     uniqueConversations.map(conv => {
                         const isSeller = user.uid === conv.sellerId;
-                        const counterpartyName = isSeller ? (conv.buyerName || 'Acheteur') : (conv.sellerName || 'Vendeur');
+                        // Use the correct names to determine counterparty
+                        const counterpartyName = isSeller
+                            ? (conv._correctBuyerName || conv.buyerName || 'Acheteur')
+                            : (conv._correctSellerName || conv.sellerName || 'Vendeur');
 
                         return (
                             <div key={conv.id} onClick={() => handleSelectChat(conv)} className="p-4 sm:p-6 border-b border-slate-50 flex gap-4 items-center cursor-pointer hover:bg-slate-50 transition-colors group">

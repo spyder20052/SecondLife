@@ -21,6 +21,10 @@ function ChatDetail({ user }) {
     const navigate = useNavigate();
     const activeChat = location.state?.activeChat;
 
+    // Determine if current user is the seller - needed for correct name handling
+    const isSeller = user && activeChat ? user.uid === activeChat.sellerId : false;
+    const counterpartyName = isSeller ? (activeChat?.buyerName || 'Acheteur') : (activeChat?.sellerName || 'Vendeur');
+
     useEffect(() => {
         if (!activeChat || !user) {
             navigate('/');
@@ -29,7 +33,12 @@ function ChatDetail({ user }) {
         const q = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
         return onSnapshot(q, (snapshot) => {
             const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(m => m.productId === activeChat.productId && m.participants?.includes(user.uid))
+                // Filter by productId AND the specific buyer-seller pair
+                .filter(m =>
+                    m.productId === activeChat.productId &&
+                    m.buyerId === activeChat.buyerId &&
+                    m.sellerId === activeChat.sellerId
+                )
                 .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
             setMessages(msgs);
             // Scroll to bottom
@@ -64,7 +73,8 @@ function ChatDetail({ user }) {
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
                 productId: activeChat.productId, productTitle: activeChat.productTitle,
                 senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
-                buyerName: user.displayName || 'Acheteur', sellerName: activeChat.sellerName,
+                buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
+                sellerName: isSeller ? (user.displayName || 'Vendeur') : (activeChat.sellerName || 'Vendeur'),
                 participants: [activeChat.buyerId, activeChat.sellerId],
                 content: newMessage,
                 type: imageFile ? 'image' : 'text',
@@ -83,7 +93,8 @@ function ChatDetail({ user }) {
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
                 productId: activeChat.productId, productTitle: activeChat.productTitle,
                 senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
-                buyerName: user.displayName || 'Acheteur', sellerName: activeChat.sellerName,
+                buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
+                sellerName: isSeller ? (user.displayName || 'Vendeur') : (activeChat.sellerName || 'Vendeur'),
                 participants: [activeChat.buyerId, activeChat.sellerId],
                 content: "Demande de paiement envoyée",
                 type: 'payment_request',
@@ -102,7 +113,8 @@ function ChatDetail({ user }) {
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
                 productId: activeChat.productId, productTitle: activeChat.productTitle,
                 senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
-                buyerName: user.displayName || 'Acheteur', sellerName: activeChat.sellerName,
+                buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
+                sellerName: isSeller ? (user.displayName || 'Vendeur') : (activeChat.sellerName || 'Vendeur'),
                 participants: [activeChat.buyerId, activeChat.sellerId],
                 content: "Paiement effectué ! L'article est vendu.",
                 type: 'payment_confirmed',
@@ -112,8 +124,7 @@ function ChatDetail({ user }) {
         } catch (err) { console.error(err); } finally { setSending(false); }
     };
 
-    const isSeller = user.uid === activeChat.sellerId;
-    const counterpartyName = isSeller ? (activeChat.buyerName || 'Acheteur') : (activeChat.sellerName || 'Vendeur');
+    // isSeller and counterpartyName are now defined at the top of the component
 
     return (
         <div className="flex flex-col h-full bg-slate-50 relative">

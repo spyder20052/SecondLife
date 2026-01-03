@@ -23,7 +23,8 @@ function ProductDetail({ products, user }) {
             sellerId: product.sellerId,
             buyerId: user.uid,
             productTitle: product.title,
-            sellerName: product.sellerName || 'Vendeur'
+            sellerName: product.sellerName || 'Vendeur',
+            buyerName: user.displayName || 'Acheteur'
         };
 
         navigate('/chat/detail', { state: { activeChat: chatData } });
