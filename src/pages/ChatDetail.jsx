@@ -96,10 +96,19 @@ function ChatDetail({ user }) {
                 readBy: [user.uid] // Sender has read their own message
             });
 
-            // Send email notification to recipient (if email available)
-            const recipientEmail = isSeller ? activeChat.buyerEmail : activeChat.sellerEmail;
+            // Send email notification to recipient
+            const recipientId = isSeller ? activeChat.buyerId : activeChat.sellerId;
             const recipientName = isSeller ? activeChat.buyerName : activeChat.sellerName;
             const senderName = user.displayName || (isSeller ? 'Vendeur' : 'Acheteur');
+
+            // Try to get email from activeChat first, then from Firestore
+            let recipientEmail = isSeller ? activeChat.buyerEmail : activeChat.sellerEmail;
+
+            if (!recipientEmail && recipientId) {
+                // Import dynamically to avoid circular dependencies
+                const { getUserEmail } = await import('../services/userService');
+                recipientEmail = await getUserEmail(recipientId);
+            }
 
             if (recipientEmail) {
                 sendMessageNotificationEmail({
@@ -109,6 +118,8 @@ function ChatDetail({ user }) {
                     message: newMessage || 'Image envoyée',
                     productTitle: activeChat.productTitle
                 }).catch(err => console.log('Email notification skipped:', err));
+            } else {
+                console.log('[Email] No recipient email found for:', recipientId);
             }
 
             setNewMessage("");

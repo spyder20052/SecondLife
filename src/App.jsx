@@ -4,6 +4,7 @@ import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'fi
 import { collection, onSnapshot } from 'firebase/firestore';
 import { auth, db, appId } from './firebase';
 import { useToast } from './components/Toast';
+import { saveUserProfile } from './services/userService';
 
 // Components
 import Header from './components/Header';
@@ -44,23 +45,34 @@ export default function App() {
       navigate('/welcome');
     }
 
-    const initAuth = async () => {
-      try {
-        if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
-          await signInWithCustomToken(auth, window.__initial_auth_token);
-        } else {
-          // On commence en anonyme pour permettre la navigation
-          await signInAnonymously(auth);
+    // Listen for auth state changes first
+    const unsubscribe = onAuthStateChanged(auth, async (currUser) => {
+      // If no user is signed in, try anonymous sign-in
+      if (!currUser) {
+        try {
+          if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+            await signInWithCustomToken(auth, window.__initial_auth_token);
+          } else {
+            // Only sign in anonymously if no user exists
+            await signInAnonymously(auth);
+          }
+        } catch (err) {
+          console.error("Erreur d'initialisation Auth:", err);
+          // Even if anonymous auth fails, allow app to continue
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Erreur d'initialisation Auth:", err);
+      } else {
+        // User already signed in - keep their session
+        setUser(currUser);
+        setLoading(false);
+
+        // Save user profile to Firestore (for email notifications)
+        if (!currUser.isAnonymous && currUser.email) {
+          saveUserProfile(currUser);
+        }
       }
-    };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currUser) => {
-      setUser(currUser);
-      setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 

@@ -36,7 +36,7 @@ export const sendMessageNotificationEmail = async ({ toEmail, toName, fromName, 
                 from_name: fromName || 'Un utilisateur',
                 message: message || 'Nouveau message',
                 product_title: productTitle || 'Article',
-                app_url: window.location.origin
+                app_url: 'https://second-life-mvp.vercel.app/'
             }
         );
 
@@ -70,7 +70,7 @@ export const sendUnreadReminderEmail = async ({ toEmail, toName, unreadCount }) 
                 from_name: 'Second Life',
                 message: `Vous avez ${unreadCount} message(s) non lu(s) en attente.`,
                 product_title: 'Rappel de messages',
-                app_url: window.location.origin
+                app_url: 'https://second-life-mvp.vercel.app/'
             }
         );
 
