@@ -1,6 +1,9 @@
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, appId } from '../firebase';
 
+// How long before a user is considered offline (in milliseconds)
+const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes
+
 /**
  * Save user profile to Firestore (including email)
  */
@@ -14,12 +17,48 @@ export const saveUserProfile = async (user) => {
             email: user.email || null,
             displayName: user.displayName || null,
             photoURL: user.photoURL || null,
-            lastSeen: new Date().toISOString()
-        }, { merge: true }); // merge: true to not overwrite existing fields
+            lastSeen: new Date().toISOString(),
+            lastActive: Date.now() // Timestamp for online detection
+        }, { merge: true });
 
         console.log('[UserProfile] Saved user profile for:', user.uid);
     } catch (error) {
         console.error('[UserProfile] Error saving profile:', error);
+    }
+};
+
+/**
+ * Update user's last activity timestamp (for online detection)
+ */
+export const updateUserActivity = async (userId) => {
+    if (!userId) return;
+
+    try {
+        const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', userId);
+        await setDoc(userRef, {
+            lastActive: Date.now()
+        }, { merge: true });
+    } catch (error) {
+        // Silently fail - this is not critical
+        console.debug('[UserProfile] Activity update failed:', error);
+    }
+};
+
+/**
+ * Check if a user is currently online (active in last 2 minutes)
+ */
+export const isUserOnline = async (userId) => {
+    if (!userId) return false;
+
+    try {
+        const profile = await getUserProfile(userId);
+        if (!profile || !profile.lastActive) return false;
+
+        const timeSinceActive = Date.now() - profile.lastActive;
+        return timeSinceActive < ONLINE_THRESHOLD_MS;
+    } catch (error) {
+        console.error('[UserProfile] Error checking online status:', error);
+        return false;
     }
 };
 
@@ -50,3 +89,4 @@ export const getUserEmail = async (userId) => {
     const profile = await getUserProfile(userId);
     return profile?.email || null;
 };
+

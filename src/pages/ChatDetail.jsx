@@ -96,30 +96,39 @@ function ChatDetail({ user }) {
                 readBy: [user.uid] // Sender has read their own message
             });
 
-            // Send email notification to recipient
+            // Send email notification to recipient (only if they're offline)
             const recipientId = isSeller ? activeChat.buyerId : activeChat.sellerId;
             const recipientName = isSeller ? activeChat.buyerName : activeChat.sellerName;
             const senderName = user.displayName || (isSeller ? 'Vendeur' : 'Acheteur');
 
-            // Try to get email from activeChat first, then from Firestore
-            let recipientEmail = isSeller ? activeChat.buyerEmail : activeChat.sellerEmail;
+            // Import user service functions
+            const { getUserEmail, isUserOnline } = await import('../services/userService');
 
-            if (!recipientEmail && recipientId) {
-                // Import dynamically to avoid circular dependencies
-                const { getUserEmail } = await import('../services/userService');
-                recipientEmail = await getUserEmail(recipientId);
-            }
+            // Check if recipient is currently online
+            const recipientOnline = await isUserOnline(recipientId);
 
-            if (recipientEmail) {
-                sendMessageNotificationEmail({
-                    toEmail: recipientEmail,
-                    toName: recipientName,
-                    fromName: senderName,
-                    message: newMessage || 'Image envoyée',
-                    productTitle: activeChat.productTitle
-                }).catch(err => console.log('Email notification skipped:', err));
+            if (recipientOnline) {
+                console.log('[Email] Recipient is online - skipping email notification');
             } else {
-                console.log('[Email] No recipient email found for:', recipientId);
+                // Try to get email from activeChat first, then from Firestore
+                let recipientEmail = isSeller ? activeChat.buyerEmail : activeChat.sellerEmail;
+
+                if (!recipientEmail && recipientId) {
+                    recipientEmail = await getUserEmail(recipientId);
+                }
+
+                if (recipientEmail) {
+                    console.log('[Email] Recipient is offline - sending email notification');
+                    sendMessageNotificationEmail({
+                        toEmail: recipientEmail,
+                        toName: recipientName,
+                        fromName: senderName,
+                        message: newMessage || 'Image envoyée',
+                        productTitle: activeChat.productTitle
+                    }).catch(err => console.log('Email notification skipped:', err));
+                } else {
+                    console.log('[Email] No recipient email found for:', recipientId);
+                }
             }
 
             setNewMessage("");

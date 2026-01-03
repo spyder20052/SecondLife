@@ -4,7 +4,7 @@ import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'fi
 import { collection, onSnapshot } from 'firebase/firestore';
 import { auth, db, appId } from './firebase';
 import { useToast } from './components/Toast';
-import { saveUserProfile } from './services/userService';
+import { saveUserProfile, updateUserActivity } from './services/userService';
 
 // Components
 import Header from './components/Header';
@@ -75,6 +75,21 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Update user activity periodically (for online detection)
+  useEffect(() => {
+    if (!user || user.isAnonymous) return;
+
+    // Update activity immediately
+    updateUserActivity(user.uid);
+
+    // Update every 30 seconds while user is on the site
+    const activityInterval = setInterval(() => {
+      updateUserActivity(user.uid);
+    }, 30000);
+
+    return () => clearInterval(activityInterval);
+  }, [user]);
 
   // Synchronisation des données
   // Products (Public)
