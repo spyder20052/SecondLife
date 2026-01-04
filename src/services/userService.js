@@ -2,7 +2,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, appId } from '../firebase';
 
 // How long before a user is considered offline (in milliseconds)
-const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes
+const ONLINE_THRESHOLD_MS = 60 * 1000; // 1 minute (reduced from 2 for easier testing)
 
 /**
  * Save user profile to Firestore (including email)
@@ -54,8 +54,11 @@ export const isUserOnline = async (userId) => {
         const profile = await getUserProfile(userId);
         if (!profile || !profile.lastActive) return false;
 
-        const timeSinceActive = Date.now() - profile.lastActive;
-        return timeSinceActive < ONLINE_THRESHOLD_MS;
+        const timeSinceActive = Math.max(0, Date.now() - profile.lastActive);
+        const isOnline = timeSinceActive < ONLINE_THRESHOLD_MS;
+
+        console.log(`[Presence] User ${userId} was last active ${Math.floor(timeSinceActive / 1000)}s ago. Online: ${isOnline}`);
+        return isOnline;
     } catch (error) {
         console.error('[UserProfile] Error checking online status:', error);
         return false;

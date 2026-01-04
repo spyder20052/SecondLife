@@ -108,26 +108,29 @@ function ChatDetail({ user }) {
             const recipientOnline = await isUserOnline(recipientId);
 
             if (recipientOnline) {
-                console.log('[Email] Recipient is online - skipping email notification');
+                console.log(`[Email] Recipient ${recipientId} is online (active < 1min ago) - skipping email notification`);
             } else {
                 // Try to get email from activeChat first, then from Firestore
                 let recipientEmail = isSeller ? activeChat.buyerEmail : activeChat.sellerEmail;
 
                 if (!recipientEmail && recipientId) {
+                    console.log(`[Email] Email missing in chat data for ${recipientId}, looking up in Firestore...`);
                     recipientEmail = await getUserEmail(recipientId);
                 }
 
                 if (recipientEmail) {
-                    console.log('[Email] Recipient is offline - sending email notification');
+                    console.log(`[Email] Recipient ${recipientId} is offline - sending email to ${recipientEmail}`);
                     sendMessageNotificationEmail({
                         toEmail: recipientEmail,
                         toName: recipientName,
                         fromName: senderName,
                         message: newMessage || 'Image envoyée',
                         productTitle: activeChat.productTitle
-                    }).catch(err => console.log('Email notification skipped:', err));
+                    })
+                        .then(res => console.log('[EmailJS] Success:', res))
+                        .catch(err => console.error('[EmailJS] Error:', err));
                 } else {
-                    console.log('[Email] No recipient email found for:', recipientId);
+                    console.warn(`[Email] CANNOT SEND: No email found in Firestore profile for user ${recipientId}. They must log in once to save their email.`);
                 }
             }
 
