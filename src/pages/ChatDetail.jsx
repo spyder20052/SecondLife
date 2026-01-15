@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, Camera, Wallet, X, Check } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { db, appId } from '../firebase';
 import { compressImage } from '../utils/image';
 import { useToast } from '../components/Toast';
 import Button from '../components/Button';
 import { sendMessageNotificationEmail } from '../services/emailService';
+import { sendReviewInvitationEmail } from '../services/emailService';
+import ReviewModal from '../components/ReviewModal';
 
 function ChatDetail({ user }) {
     const { addToast } = useToast();
@@ -16,54 +16,96 @@ function ChatDetail({ user }) {
     const [imageFile, setImageFile] = useState(null); // For chat images
     const [imagePreview, setImagePreview] = useState(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     const messagesEndRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
     const activeChat = location.state?.activeChat;
 
-    // Determine if current user is the seller - needed for correct name handling
+    // Determine if current user is the seller
     const isSeller = user && activeChat ? user.uid === activeChat.sellerId : false;
     const counterpartyName = isSeller ? (activeChat?.buyerName || 'Acheteur') : (activeChat?.sellerName || 'Vendeur');
+    const isSaleConfirmed = messages.some(m => m.type === 'sale_confirmed');
 
     useEffect(() => {
         if (!activeChat || !user) {
             navigate('/');
             return;
         }
-        const q = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-        return onSnapshot(q, (snapshot) => {
-            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                // Filter by productId AND the specific buyer-seller pair
-                .filter(m =>
-                    m.productId === activeChat.productId &&
-                    m.buyerId === activeChat.buyerId &&
-                    m.sellerId === activeChat.sellerId
-                )
-                .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
 
-            setMessages(msgs);
+        // Auto-scroll to bottom on load
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
 
-            // Mark unread messages as read
-            msgs.forEach(msg => {
-                if (msg.senderId !== user.uid && (!msg.readBy || !msg.readBy.includes(user.uid))) {
-                    const msgRef = doc(db, 'artifacts', appId, 'public', 'data', 'messages', msg.id);
-                    updateDoc(msgRef, {
-                        readBy: arrayUnion(user.uid)
-                    }).catch(err => console.error('Error marking message as read:', err));
+        // Check if Buyer has already reviewed this product
+        if (!isSeller) {
+            const checkReview = async () => {
+                try {
+                    const res = await fetch(`/api/reviews/check?productId=${activeChat.productId}&buyerId=${user.uid}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.exists) setHasReviewed(true);
+                    }
+                } catch (err) {
+                    console.error("Check review error", err);
                 }
-            });
+            };
+            checkReview(); // Backend endpoint might not exist yet, defaulting to false is fine for now
+        }
 
-            // Scroll to bottom
-            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-        });
-    }, [activeChat, user, navigate]);
+        const fetchMessages = async () => {
+            try {
+                const queryParams = new URLSearchParams({
+                    productId: activeChat.productId,
+                    buyerId: activeChat.buyerId,
+                    sellerId: activeChat.sellerId
+                });
+
+                const res = await fetch(`/api/messages/conversation?${queryParams}`);
+                if (!res.ok) throw new Error('Failed to fetch messages');
+                const msgs = await res.json();
+
+                // Sort by timestamp (ISO string)
+                msgs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                setMessages(msgs);
+
+                // Mark unread as read
+                msgs.forEach(async (m) => {
+                    if (m.senderId !== user.uid && (!m.readBy || !m.readBy.includes(user.uid))) {
+                        try {
+                            await fetch(`/api/messages/read/${m.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: user.uid })
+                            });
+                        } catch (readErr) {
+                            console.error('Error marking message as read:', readErr);
+                        }
+                    }
+                });
+
+                // Scroll to bottom
+                setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+
+            } catch (err) {
+                console.error("Chat Fetch Error:", err);
+            }
+        };
+
+        fetchMessages();
+        const interval = setInterval(fetchMessages, 3000); // 3s polling
+        return () => clearInterval(interval);
+    }, [activeChat, user, navigate, isSeller]);
 
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
             setImageFile(file);
-            const preview = await compressImage(file); // Re-using compress for preview is fine, acts as Base64
+            const preview = await compressImage(file);
             setImagePreview(preview);
         }
     };
@@ -73,64 +115,73 @@ function ChatDetail({ user }) {
         setImagePreview(null);
     };
 
-    const sendMessage = async (e) => {
-        e?.preventDefault();
-        if ((!newMessage.trim() && !imageFile) || !user || sending || !activeChat) return;
-        setSending(true);
-        try {
-            let contentImage = null;
-            if (imageFile) {
-                contentImage = await compressImage(imageFile);
-            }
+    const handleSend = async (type = 'text', contentOrUrl = null) => {
+        const msgContent = contentOrUrl || newMessage;
 
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                productId: activeChat.productId, productTitle: activeChat.productTitle,
-                senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
-                buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
-                sellerName: isSeller ? (user.displayName || 'Vendeur') : (activeChat.sellerName || 'Vendeur'),
-                participants: [activeChat.buyerId, activeChat.sellerId],
-                content: newMessage,
-                type: imageFile ? 'image' : 'text',
-                imageUrl: contentImage,
-                timestamp: serverTimestamp(),
-                readBy: [user.uid] // Sender has read their own message
+        // Detect image sending if type is default text
+        const effectiveType = (type === 'text' && imageFile) ? 'image' : type;
+
+        if ((!msgContent.trim() && effectiveType === 'text') && !imageFile || !user || sending || !activeChat) return;
+        setSending(true);
+
+        let contentImage = null;
+        if (imageFile) {
+            contentImage = await compressImage(imageFile, 0.5, 500, 500);
+        }
+
+        const messageData = {
+            productId: activeChat.productId,
+            productTitle: activeChat.productTitle,
+            senderId: user.uid,
+            buyerId: activeChat.buyerId,
+            sellerId: activeChat.sellerId,
+            buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
+            sellerName: isSeller ? (user.displayName || 'Vendeur') : (activeChat.sellerName || 'Vendeur'),
+            participants: [activeChat.buyerId, activeChat.sellerId],
+            content: effectiveType === 'text' ? msgContent : (effectiveType === 'image' ? 'Image envoyée' : msgContent),
+            type: effectiveType === 'image' ? 'image' : effectiveType,
+            imageUrl: effectiveType === 'image' ? contentImage : null,
+            timestamp: new Date().toISOString(),
+            readBy: [user.uid]
+        };
+
+        try {
+            // Optimistic Update
+            setMessages(prev => [...prev, { ...messageData, id: 'temp-' + Date.now() }]);
+            setNewMessage("");
+            cancelImage();
+
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messageData)
             });
 
-            // Send email notification to recipient (only if they're offline)
+            // Email Notification Logic
             const recipientId = isSeller ? activeChat.buyerId : activeChat.sellerId;
             const recipientName = isSeller ? activeChat.buyerName : activeChat.sellerName;
             const senderName = user.displayName || (isSeller ? 'Vendeur' : 'Acheteur');
 
-            // Import user service functions
+            // Import services dynamically if needed
             const { getUserEmail, isUserOnline } = await import('../services/userService');
 
-            // Check if recipient is currently online
+            // Check if recipient is online
             const recipientOnline = await isUserOnline(recipientId);
 
-            if (recipientOnline) {
-                console.log(`[Email] Recipient ${recipientId} is online (active < 1min ago) - skipping email notification`);
-            } else {
-                // Try to get email from activeChat first, then from Firestore
+            if (!recipientOnline) {
                 let recipientEmail = isSeller ? activeChat.buyerEmail : activeChat.sellerEmail;
-
                 if (!recipientEmail && recipientId) {
-                    console.log(`[Email] Email missing in chat data for ${recipientId}, looking up in Firestore...`);
                     recipientEmail = await getUserEmail(recipientId);
                 }
 
                 if (recipientEmail) {
-                    console.log(`[Email] Recipient ${recipientId} is offline - sending email to ${recipientEmail}`);
                     sendMessageNotificationEmail({
                         toEmail: recipientEmail,
                         toName: recipientName,
                         fromName: senderName,
                         message: newMessage || 'Image envoyée',
                         productTitle: activeChat.productTitle
-                    })
-                        .then(res => console.log('[EmailJS] Success:', res))
-                        .catch(err => console.error('[EmailJS] Error:', err));
-                } else {
-                    console.warn(`[Email] CANNOT SEND: No email found in Firestore profile for user ${recipientId}. They must log in once to save their email.`);
+                    }).catch(console.error);
                 }
             }
 
@@ -143,7 +194,7 @@ function ChatDetail({ user }) {
         if (!user || sending || !activeChat) return;
         setSending(true);
         try {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+            const messageData = {
                 productId: activeChat.productId, productTitle: activeChat.productTitle,
                 senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
                 buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
@@ -151,20 +202,28 @@ function ChatDetail({ user }) {
                 participants: [activeChat.buyerId, activeChat.sellerId],
                 content: "Demande de paiement envoyée",
                 type: 'payment_request',
-                timestamp: serverTimestamp(),
+                timestamp: new Date().toISOString(),
                 readBy: [user.uid]
+            };
+
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messageData)
             });
+
             setShowPaymentModal(false);
+            // Manually add to view to feel responsive
+            setMessages(prev => [...prev, { ...messageData, id: 'temp-' + Date.now() }]);
+
         } catch (err) { console.error(err); } finally { setSending(false); }
     };
 
     const handlePayment = async (msgId) => {
         if (!user || sending || !activeChat) return;
-        // In a real app, integrate Stripe here.
-        // For MVP, we send a "Payment Confirmed" system message.
         setSending(true);
         try {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+            const messageData = {
                 productId: activeChat.productId, productTitle: activeChat.productTitle,
                 senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
                 buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
@@ -172,20 +231,103 @@ function ChatDetail({ user }) {
                 participants: [activeChat.buyerId, activeChat.sellerId],
                 content: "Paiement effectué ! L'article est vendu.",
                 type: 'payment_confirmed',
-                timestamp: serverTimestamp(),
+                timestamp: new Date().toISOString(),
                 readBy: [user.uid]
+            };
+
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messageData)
             });
+
             addToast("Paiement effectué !", "success");
+            setMessages(prev => [...prev, { ...messageData, id: 'temp-' + Date.now() }]);
         } catch (err) { console.error(err); } finally { setSending(false); }
     };
 
-    // isSeller and counterpartyName are now defined at the top of the component
+    const confirmSale = async () => {
+        if (!user || sending || !activeChat) return;
+        if (!window.confirm(`Confirmer la vente à ${activeChat.buyerName || 'l\'acheteur'} ?`)) return;
+
+        setSending(true);
+        try {
+            // 1. Update Product status API
+            await fetch(`/api/products/${activeChat.productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'sold',
+                    buyerId: activeChat.buyerId,
+                    soldToName: activeChat.buyerName,
+                    soldAt: new Date().toISOString()
+                })
+            });
+
+            // 2. Send confirmation message API
+            const messageData = {
+                productId: activeChat.productId, productTitle: activeChat.productTitle,
+                senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
+                buyerName: activeChat.buyerName, sellerName: activeChat.sellerName,
+                participants: [activeChat.buyerId, activeChat.sellerId],
+                content: `🤝 Vente confirmée avec ${activeChat.buyerName || 'l\'acheteur'} !`,
+                type: 'sale_confirmed',
+                timestamp: new Date().toISOString(),
+                readBy: [user.uid]
+            };
+
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messageData)
+            });
+
+            setMessages(prev => [...prev, { ...messageData, id: 'temp-' + Date.now() }]);
+
+            // 3. Send Invitation Email to Buyer
+            let buyerEmail = activeChat.buyerEmail;
+
+            if (!buyerEmail && activeChat.buyerId) {
+                const { getUserEmail } = await import('../services/userService');
+                buyerEmail = await getUserEmail(activeChat.buyerId);
+            }
+
+            if (buyerEmail) {
+                sendReviewInvitationEmail({
+                    toEmail: buyerEmail,
+                    toName: activeChat.buyerName,
+                    sellerName: activeChat.sellerName,
+                    productTitle: activeChat.productTitle
+                });
+            }
+
+            addToast("Vente confirmée !", "success");
+        } catch (err) {
+            console.error("Error confirming sale:", err);
+            addToast("Erreur lors de la confirmation", "error");
+        } finally {
+            setSending(false);
+        }
+    };
 
     return (
         <div className="flex flex-col h-full bg-slate-50 relative">
             <div className="p-4 border-b border-slate-100 flex items-center gap-4 bg-white/80 backdrop-blur-xl sticky top-0 z-10">
                 <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-500"><ArrowLeft size={20} /></button>
                 <div className="flex-1"><h3 className="font-black text-slate-900 leading-none">{counterpartyName}</h3><p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mt-1">{activeChat.productTitle}</p></div>
+                {isSeller && !isSaleConfirmed && (
+                    <button onClick={confirmSale} disabled={sending} className="bg-indigo-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-lg shadow-indigo-200 active:scale-95">
+                        Valider la vente
+                    </button>
+                )}
+                {!isSeller && isSaleConfirmed && !hasReviewed && (
+                    <button onClick={() => setShowReviewModal(true)} className="bg-amber-400 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-lg shadow-amber-200 active:scale-95 animate-pulse">
+                        Laisser un avis
+                    </button>
+                )}
+                {!isSeller && isSaleConfirmed && hasReviewed && (
+                    <div className="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-2 rounded-lg">Avis envoyé</div>
+                )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
@@ -213,9 +355,9 @@ function ChatDetail({ user }) {
                                         <button onClick={() => handlePayment(msg.id)} disabled={sending} className="bg-white text-indigo-600 py-2 rounded-lg font-bold text-xs shadow-md active:scale-95">Payer maintenant</button>
                                     )}
                                 </div>
-                            ) : msg.type === 'payment_confirmed' ? (
-                                <div className="flex items-center justify-center gap-2 font-black">
-                                    <Check size={18} /> VENTE CONFIRMÉE
+                            ) : msg.type === 'payment_confirmed' || msg.type === 'sale_confirmed' ? (
+                                <div className="flex items-center justify-center gap-2 font-black text-emerald-600 bg-emerald-50 p-2 rounded-lg">
+                                    <Check size={18} /> {msg.content || (msg.type === 'sale_confirmed' ? 'VENTE CONFIRMÉE' : 'PAIEMENT REÇU')}
                                 </div>
                             ) : (
                                 <span>{msg.content}</span>
@@ -236,7 +378,7 @@ function ChatDetail({ user }) {
                     </div>
                 )}
 
-                <form onSubmit={sendMessage} className="flex gap-3 items-end">
+                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-3 items-end">
                     <label className="p-4 text-slate-400 hover:text-indigo-600 cursor-pointer transition-colors bg-slate-50 rounded-2xl active:scale-95">
                         <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                         <Camera size={24} />
@@ -267,6 +409,22 @@ function ChatDetail({ user }) {
                     </div>
                 </div>
             )}
+
+            {/* Review Modal */}
+            <ReviewModal
+                isOpen={showReviewModal}
+                onClose={() => {
+                    setShowReviewModal(false);
+                    // Refresh review state after close (optimistic update)
+                    setHasReviewed(true);
+                }}
+                sellerId={activeChat?.sellerId}
+                sellerName={activeChat?.sellerName}
+                productId={activeChat?.productId}
+                buyerId={user?.uid}
+                productTitle={activeChat?.productTitle}
+                buyerName={user?.displayName}
+            />
         </div>
     );
 }

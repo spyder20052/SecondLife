@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { auth, db, appId } from './firebase';
+// Removed: firebase auth/firestore imports
 import { useToast } from './components/Toast';
 import { saveUserProfile, updateUserActivity } from './services/userService';
 
@@ -37,107 +35,152 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Initialisation Auth & Onboarding
+  // AUTH INITIALIZATION (Custom Backend)
   useEffect(() => {
-    // Check first visit
-    const hasVisited = localStorage.getItem('has_visited');
-    if (!hasVisited && !location.pathname.startsWith('/welcome')) {
-      navigate('/welcome');
-    }
+    const initAuth = async () => {
+      // Check first visit
+      const hasVisited = localStorage.getItem('has_visited');
+      if (!hasVisited && !location.pathname.startsWith('/welcome')) {
+        navigate('/welcome');
+      }
 
-    // Listen for auth state changes first
-    const unsubscribe = onAuthStateChanged(auth, async (currUser) => {
-      // If no user is signed in, try anonymous sign-in
-      if (!currUser) {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+
+      if (token && storedUser) {
+        // Optimistic load
+        const localUser = JSON.parse(storedUser);
+        setUser(localUser);
+
+        // Verify token with Backend
         try {
-          if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
-            await signInWithCustomToken(auth, window.__initial_auth_token);
+          const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (res.ok) {
+            const verifiedUser = await res.json();
+            // Merge local and verified (e.g. verified has strict latest data)
+            setUser(prev => ({ ...prev, ...verifiedUser }));
+            localStorage.setItem('user', JSON.stringify(verifiedUser)); // Update cache
           } else {
-            // Only sign in anonymously if no user exists
-            await signInAnonymously(auth);
+            // Token invalid or expired
+            console.warn("Token invalid, logging out");
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
           }
         } catch (err) {
-          console.error("Erreur d'initialisation Auth:", err);
-          // Even if anonymous auth fails, allow app to continue
-          setLoading(false);
-        }
-      } else {
-        // User already signed in - keep their session
-        setUser(currUser);
-        setLoading(false);
-
-        // Save user profile to Firestore (for email notifications)
-        if (!currUser.isAnonymous && currUser.email) {
-          saveUserProfile(currUser);
+          console.error("Auth verification failed", err);
+          // Don't logout on network error, assume offline valid for now?
+          // For security, maybe logout, but for UX, keep session if possible.
         }
       }
-    });
+      setLoading(false);
+    };
 
-    return () => unsubscribe();
+    initAuth();
   }, []);
 
-  // Update user activity periodically (for online detection)
+  // Protect private routes
   useEffect(() => {
-    if (!user || user.isAnonymous) return;
+    if (loading) return;
+    const privatePrefixes = ['/post', '/messages', '/profile', '/chat'];
+    const isPrivate = privatePrefixes.some(prefix => location.pathname.startsWith(prefix));
+    if (!user && isPrivate) {
+      navigate('/auth');
+    }
+  }, [user, loading, location, navigate]);
 
-    // Update activity immediately
+  // Sync User Profile (Polling) & Activity
+  useEffect(() => {
+    if (!user || !user.uid) return;
+
+    // Update Activity
     updateUserActivity(user.uid);
+    const activityInterval = setInterval(() => updateUserActivity(user.uid), 30000);
 
-    // Update every 30 seconds while user is on the site
-    const activityInterval = setInterval(() => {
-      updateUserActivity(user.uid);
-    }, 30000);
+    // Sync Profile Data
+    const syncUserProfile = async () => {
+      try {
+        const res = await fetch(`/api/users/${user.uid}`);
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(prev => {
+            // Cheap deep comparison check
+            if (JSON.stringify(prev) !== JSON.stringify({ ...prev, ...userData })) {
+              return { ...prev, ...userData };
+            }
+            return prev;
+          });
+        }
+      } catch (err) { console.error("Sync error", err); }
+    };
+    syncUserProfile();
+    const syncInterval = setInterval(syncUserProfile, 10000);
 
-    return () => clearInterval(activityInterval);
-  }, [user]);
+    return () => {
+      clearInterval(activityInterval);
+      clearInterval(syncInterval);
+    };
+  }, [user?.uid]);
 
-  // Synchronisation des données
-  // Products (Public)
+  // Synchronisation des données (Produits)
   useEffect(() => {
-    const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-    const unsubProducts = onSnapshot(productsRef, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setProducts(items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
-    }, (err) => console.error("Erreur Firestore (Products):", err));
-    return () => unsubProducts();
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const items = await res.json();
+          setProducts(items);
+        }
+      } catch (err) { console.error("Products API error", err); }
+    };
+    fetchProducts();
+    const interval = setInterval(fetchProducts, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Messages (Private) with notification support
+  // Synchronisation des Messages
   useEffect(() => {
-    if (!user) {
+    if (!user?.uid) {
       setConversations([]);
       prevConversationsRef.current = [];
       return;
     }
-    const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-    const unsubMessages = onSnapshot(messagesRef, (snapshot) => {
-      const allMsgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const userConversations = allMsgs.filter(m => m.participants?.includes(user.uid));
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(`/api/messages/${user.uid}`);
+        if (res.ok) {
+          const userConversations = await res.json();
+          userConversations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-      // Check for new messages (not sent by current user and not already seen)
-      const prevIds = new Set(prevConversationsRef.current.map(m => m.id));
-      const isOnChatPage = location.pathname.startsWith('/chat/detail');
+          // Notifications Logic
+          const prevIds = new Set(prevConversationsRef.current.map(m => m.id));
+          const isOnChatPage = location.pathname.startsWith('/chat/detail');
+          userConversations.forEach(msg => {
+            if (!prevIds.has(msg.id) && msg.senderId !== user.uid && !isOnChatPage && prevConversationsRef.current.length > 0) {
+              const senderName = user.uid === msg.sellerId ? msg.buyerName : msg.sellerName;
+              addToast(`💬 ${senderName || 'Message'}: ${msg.content?.substring(0, 20)}...`, 'info');
+            }
+          });
 
-      userConversations.forEach(msg => {
-        // New message from someone else, not on chat page
-        if (!prevIds.has(msg.id) && msg.senderId !== user.uid && !isOnChatPage && prevConversationsRef.current.length > 0) {
-          const senderName = user.uid === msg.sellerId ? msg.buyerName : msg.sellerName;
-          addToast(`💬 ${senderName || 'Nouveau message'}: ${msg.content?.substring(0, 30) || 'Image'}${msg.content?.length > 30 ? '...' : ''}`, 'info');
+          prevConversationsRef.current = userConversations;
+          setConversations(userConversations);
         }
-      });
+      } catch (err) { console.error("Messages API error", err); }
+    };
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
+  }, [user?.uid, location.pathname]);
 
-      prevConversationsRef.current = userConversations;
-      setConversations(userConversations);
-    }, (err) => console.error("Erreur Firestore (Messages):", err));
-    return () => unsubMessages();
-  }, [user, location.pathname, addToast]);
 
-  // Calculate unread messages count - MUST be before any conditional returns!
+  // Unread Count
   const unreadCount = useMemo(() => {
-    if (!user || user.isAnonymous) return 0;
+    if (!user) return 0;
     return conversations.filter(msg =>
-      msg.senderId !== user.uid &&
-      (!msg.readBy || !msg.readBy.includes(user.uid))
+      msg.senderId !== user.uid && (!msg.readBy || !msg.readBy.includes(user.uid))
     ).length;
   }, [conversations, user]);
 
@@ -145,8 +188,6 @@ export default function App() {
 
   const showNav = !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
   const showHeader = !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
-
-  // Pages that need full height without parent padding/scroll
   const isChat = location.pathname.startsWith('/chat/detail');
   const isLanding = location.pathname.startsWith('/welcome');
 
@@ -157,39 +198,21 @@ export default function App() {
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative">
       {showHeader && <Header user={user} />}
-
       <main className={mainClass}>
         <Routes>
-          <Route path="/" element={
-            <Home
-              products={products}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              categoryFilter={categoryFilter}
-              setCategoryFilter={setCategoryFilter}
-            />
-          } />
-          <Route path="/search" element={
-            <Home
-              products={products}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              categoryFilter={categoryFilter}
-              setCategoryFilter={setCategoryFilter}
-              isSearchFocus={true}
-            />
-          } />
+          <Route path="/" element={<Home products={products} searchQuery={searchQuery} setSearchQuery={setSearchQuery} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} />} />
+          <Route path="/search" element={<Home products={products} searchQuery={searchQuery} setSearchQuery={setSearchQuery} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} isSearchFocus={true} />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/post" element={<Post user={user} />} />
           <Route path="/messages" element={<Messages user={user} conversations={conversations} />} />
           <Route path="/profile" element={<Profile user={user} products={products} />} />
+          <Route path="/profile/:id" element={<Profile user={user} products={products} />} />
           <Route path="/product/:id" element={<ProductDetail products={products} user={user} />} />
           <Route path="/chat/detail" element={<ChatDetail user={user} />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/welcome" element={<LandingPage />} />
         </Routes>
       </main>
-
       {showNav && <BottomNav user={user} unreadCount={unreadCount} />}
     </div>
   );

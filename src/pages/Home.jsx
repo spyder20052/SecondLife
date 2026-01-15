@@ -9,7 +9,7 @@ function Home({ products, searchQuery, setSearchQuery, categoryFilter, setCatego
     const filteredProducts = products.filter(p => {
         const titleMatch = (p.title || "").toLowerCase().includes((searchQuery || "").toLowerCase());
         const catMatch = !categoryFilter || categoryFilter === "Tout" || p.category === categoryFilter;
-        return titleMatch && catMatch;
+        return titleMatch && catMatch && p.status !== 'sold';
     });
 
     return (
