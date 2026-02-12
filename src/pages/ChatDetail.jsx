@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Send, Camera, Wallet, X, Check } from 'lucide-react';
+import { ArrowLeft, Send, Camera, Wallet, X, Check, Smartphone, Upload, CheckCircle, XCircle } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { compressImage } from '../utils/image';
 import { useToast } from '../components/Toast';
@@ -18,11 +18,17 @@ function ChatDetail({ user }) {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [hasReviewed, setHasReviewed] = useState(false);
+    const [sellerMomoNumber, setSellerMomoNumber] = useState('');
+    const [loadingMomo, setLoadingMomo] = useState(false);
+    const [paymentProofFile, setPaymentProofFile] = useState(null);
+    const [paymentProofPreview, setPaymentProofPreview] = useState(null);
+    const [sendingProof, setSendingProof] = useState(false);
 
     const messagesEndRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
     const activeChat = location.state?.activeChat;
+    const [productPrice, setProductPrice] = useState(activeChat?.productPrice || 0);
 
     // Determine if current user is the seller
     const isSeller = user && activeChat ? user.uid === activeChat.sellerId : false;
@@ -190,9 +196,46 @@ function ChatDetail({ user }) {
         } catch (err) { console.error(err); } finally { setSending(false); }
     };
 
+    const handleOpenPaymentModal = async () => {
+        if (!user || !activeChat) return;
+        setLoadingMomo(true);
+        try {
+            // Fetch seller's MoMo number
+            const res = await fetch(`/api/users/${user.uid}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.momoNumber) {
+                    setSellerMomoNumber(data.momoNumber);
+                } else {
+                    addToast("Configurez d'abord votre numéro MoMo dans votre profil", "error");
+                    setLoadingMomo(false);
+                    return;
+                }
+            }
+
+            // Fetch product price if not already available
+            if (!productPrice && activeChat.productId) {
+                const prodRes = await fetch(`/api/products/${activeChat.productId}`);
+                if (prodRes.ok) {
+                    const prodData = await prodRes.json();
+                    setProductPrice(prodData.price || 0);
+                }
+            }
+
+            setShowPaymentModal(true);
+        } catch (err) {
+            console.error(err);
+            addToast("Erreur lors de la récupération du profil", "error");
+        } finally {
+            setLoadingMomo(false);
+        }
+    };
+
     const sendPaymentRequest = async () => {
-        if (!user || sending || !activeChat) return;
+        if (!user || sending || !activeChat || !sellerMomoNumber) return;
         setSending(true);
+        const amount = productPrice || 0;
+        const instructions = `📱 PAIEMENT MOMO — ${activeChat.productTitle}\n\n💰 Montant : ${amount.toLocaleString()} FCFA\n📞 Numéro MoMo : ${sellerMomoNumber}\n\n📋 ÉTAPES À SUIVRE :\n\n1️⃣ Ouvrez votre application Mobile Money (MoMo)\n2️⃣ Allez dans « Envoyer de l'argent »\n3️⃣ Entrez le numéro : ${sellerMomoNumber}\n4️⃣ Entrez le montant : ${amount.toLocaleString()} FCFA\n5️⃣ Confirmez le transfert\n6️⃣ Faites une capture d'écran de la confirmation\n7️⃣ Envoyez la capture ci-dessous comme preuve\n\n⚠️ Ne payez que si vous êtes sûr(e) de votre achat.`;
         try {
             const messageData = {
                 productId: activeChat.productId, productTitle: activeChat.productTitle,
@@ -200,8 +243,10 @@ function ChatDetail({ user }) {
                 buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
                 sellerName: isSeller ? (user.displayName || 'Vendeur') : (activeChat.sellerName || 'Vendeur'),
                 participants: [activeChat.buyerId, activeChat.sellerId],
-                content: "Demande de paiement envoyée",
+                content: instructions,
                 type: 'payment_request',
+                paymentAmount: amount,
+                momoNumber: sellerMomoNumber,
                 timestamp: new Date().toISOString(),
                 readBy: [user.uid]
             };
@@ -213,10 +258,54 @@ function ChatDetail({ user }) {
             });
 
             setShowPaymentModal(false);
-            // Manually add to view to feel responsive
             setMessages(prev => [...prev, { ...messageData, id: 'temp-' + Date.now() }]);
 
         } catch (err) { console.error(err); } finally { setSending(false); }
+    };
+
+    const handlePaymentProofChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPaymentProofFile(file);
+            const preview = await compressImage(file);
+            setPaymentProofPreview(preview);
+        }
+    };
+
+    const sendPaymentProof = async () => {
+        if (!user || sendingProof || !activeChat || !paymentProofFile) return;
+        setSendingProof(true);
+        try {
+            const proofImage = await compressImage(paymentProofFile, 0.6, 600, 600);
+            const messageData = {
+                productId: activeChat.productId, productTitle: activeChat.productTitle,
+                senderId: user.uid, buyerId: activeChat.buyerId, sellerId: activeChat.sellerId,
+                buyerName: isSeller ? (activeChat.buyerName || 'Acheteur') : (user.displayName || 'Acheteur'),
+                sellerName: isSeller ? (user.displayName || 'Vendeur') : (activeChat.sellerName || 'Vendeur'),
+                participants: [activeChat.buyerId, activeChat.sellerId],
+                content: '📸 Preuve de paiement envoyée',
+                type: 'payment_proof',
+                imageUrl: proofImage,
+                timestamp: new Date().toISOString(),
+                readBy: [user.uid]
+            };
+
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messageData)
+            });
+
+            setPaymentProofFile(null);
+            setPaymentProofPreview(null);
+            setMessages(prev => [...prev, { ...messageData, id: 'temp-' + Date.now() }]);
+            addToast("Preuve de paiement envoyée !", "success");
+        } catch (err) {
+            console.error(err);
+            addToast("Erreur lors de l'envoi de la preuve", "error");
+        } finally {
+            setSendingProof(false);
+        }
     };
 
     const handlePayment = async (msgId) => {
@@ -345,18 +434,76 @@ function ChatDetail({ user }) {
                             )}
 
                             {msg.type === 'payment_request' ? (
-                                <div className="flex flex-col gap-3">
-                                    <span className="font-black opacity-90 uppercase tracking-wider text-[10px]">Demande de paiement</span>
-                                    <div className="p-3 bg-white/10 rounded-xl flex items-center gap-3">
-                                        <Wallet size={20} />
-                                        <span>Procéder au paiement</span>
+                                <div className="flex flex-col gap-3 w-full">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center">
+                                            <Smartphone size={16} className="text-white" />
+                                        </div>
+                                        <span className="font-black text-xs uppercase tracking-wider">Paiement MoMo</span>
                                     </div>
-                                    {msg.senderId !== user.uid && (
-                                        <button onClick={() => handlePayment(msg.id)} disabled={sending} className="bg-white text-indigo-600 py-2 rounded-lg font-bold text-xs shadow-md active:scale-95">Payer maintenant</button>
+                                    {msg.momoNumber && (
+                                        <div className={`p-4 rounded-2xl text-sm space-y-2 ${msg.senderId === user.uid ? 'bg-white/15' : 'bg-indigo-50 border border-indigo-100'}`}>
+                                            <div className={`font-black text-base ${msg.senderId === user.uid ? 'text-white' : 'text-indigo-700'}`}>
+                                                💰 {(msg.paymentAmount || 0).toLocaleString()} FCFA
+                                            </div>
+                                            <div className={`text-xs font-bold ${msg.senderId === user.uid ? 'text-indigo-100' : 'text-indigo-500'}`}>
+                                                📞 Numéro : {msg.momoNumber}
+                                            </div>
+                                            <hr className={`${msg.senderId === user.uid ? 'border-white/20' : 'border-indigo-100'}`} />
+                                            <div className={`text-xs space-y-1.5 ${msg.senderId === user.uid ? 'text-indigo-100' : 'text-slate-600'}`}>
+                                                <p className="font-bold">📋 Étapes :</p>
+                                                <p>1️⃣ Ouvrez votre app MoMo</p>
+                                                <p>2️⃣ « Envoyer de l'argent »</p>
+                                                <p>3️⃣ Numéro : <span className="font-bold">{msg.momoNumber}</span></p>
+                                                <p>4️⃣ Montant : <span className="font-bold">{(msg.paymentAmount || 0).toLocaleString()} FCFA</span></p>
+                                                <p>5️⃣ Confirmez le transfert</p>
+                                                <p>6️⃣ Capture d'écran de la confirmation</p>
+                                                <p>7️⃣ Envoyez la capture ci-dessous</p>
+                                            </div>
+                                            <div className={`text-[10px] font-bold mt-2 ${msg.senderId === user.uid ? 'text-amber-200' : 'text-amber-600'}`}>
+                                                ⚠️ Ne payez que si vous êtes sûr(e)
+                                            </div>
+                                        </div>
+                                    )}
+                                    {!msg.momoNumber && (
+                                        <div className="p-3 bg-white/10 rounded-xl flex items-center gap-3">
+                                            <Wallet size={20} />
+                                            <span>{msg.content}</span>
+                                        </div>
+                                    )}
+                                    {msg.senderId !== user.uid && !messages.some(m => m.type === 'payment_proof') && (
+                                        <label className="bg-white text-indigo-600 py-3 px-4 rounded-xl font-bold text-xs shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors">
+                                            <Upload size={16} /> Envoyer la preuve de paiement
+                                            <input type="file" accept="image/*" onChange={handlePaymentProofChange} className="hidden" />
+                                        </label>
+                                    )}
+                                </div>
+                            ) : msg.type === 'payment_proof' ? (
+                                <div className="flex flex-col gap-3 w-full">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-6 h-6 rounded-full bg-blue-400 flex items-center justify-center">
+                                            <Camera size={12} className="text-white" />
+                                        </div>
+                                        <span className="font-black text-[10px] uppercase tracking-wider">Preuve de paiement</span>
+                                    </div>
+                                    {msg.imageUrl && (
+                                        <div className="rounded-xl overflow-hidden border-2 border-white/20">
+                                            <img src={msg.imageUrl} alt="Preuve de paiement" className="w-full h-auto" />
+                                        </div>
+                                    )}
+                                    {isSeller && msg.senderId !== user.uid && !messages.some(m => m.type === 'payment_confirmed') && (
+                                        <div className="flex gap-2 mt-1">
+                                            <button onClick={() => handlePayment(msg.id)} disabled={sending} className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-md active:scale-95 flex items-center justify-center gap-1.5 hover:bg-emerald-600 transition-colors">
+                                                <CheckCircle size={14} /> Confirmer
+                                            </button>
+                                            <button onClick={() => handleSend('text', '❌ Preuve de paiement refusée. Veuillez renvoyer une capture valide.')} disabled={sending} className="flex-1 bg-rose-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-md active:scale-95 flex items-center justify-center gap-1.5 hover:bg-rose-600 transition-colors">
+                                                <XCircle size={14} /> Refuser
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ) : msg.type === 'payment_confirmed' || msg.type === 'sale_confirmed' ? (
-                                <div className="flex items-center justify-center gap-2 font-black text-emerald-600 bg-emerald-50 p-2 rounded-lg">
+                                <div className="flex items-center justify-center gap-2 font-black text-emerald-600 bg-emerald-50 p-3 rounded-xl">
                                     <Check size={18} /> {msg.content || (msg.type === 'sale_confirmed' ? 'VENTE CONFIRMÉE' : 'PAIEMENT REÇU')}
                                 </div>
                             ) : (
@@ -384,7 +531,7 @@ function ChatDetail({ user }) {
                         <Camera size={24} />
                     </label>
                     {isSeller && (
-                        <button type="button" onClick={() => setShowPaymentModal(true)} className="p-4 text-slate-400 hover:text-emerald-500 cursor-pointer transition-colors bg-slate-50 rounded-2xl active:scale-95">
+                        <button type="button" onClick={handleOpenPaymentModal} disabled={loadingMomo} className="p-4 text-slate-400 hover:text-emerald-500 cursor-pointer transition-colors bg-slate-50 rounded-2xl active:scale-95 disabled:opacity-50">
                             <Wallet size={24} />
                         </button>
                     )}
@@ -395,16 +542,53 @@ function ChatDetail({ user }) {
                 </form>
             </div>
 
-            {/* Mock Payment Modal */}
+            {/* MoMo Payment Modal */}
             {showPaymentModal && (
                 <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-                    <div className="bg-white p-6 rounded-[32px] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4"><Wallet size={32} /></div>
-                        <h3 className="text-xl font-black text-center mb-2">Envoyer une demande</h3>
-                        <p className="text-center text-slate-500 text-sm mb-6">Demander à l'acheteur de payer pour valider la vente.</p>
+                    <div className="bg-white p-6 rounded-[32px] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[80vh] overflow-y-auto">
+                        <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"><Smartphone size={32} /></div>
+                        <h3 className="text-xl font-black text-center mb-2">Demande de paiement MoMo</h3>
+                        <p className="text-center text-slate-500 text-sm mb-4">L'acheteur recevra un message avec les instructions détaillées pour envoyer le paiement.</p>
+
+                        <div className="bg-slate-50 p-4 rounded-2xl mb-4 space-y-2 text-sm">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Article</span>
+                                <span className="font-bold text-slate-800 text-right max-w-[60%] truncate">{activeChat.productTitle}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Montant</span>
+                                <span className="font-black text-indigo-600">{(productPrice || 0).toLocaleString()} FCFA</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">N° MoMo</span>
+                                <span className="font-bold text-slate-800">{sellerMomoNumber}</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl mb-5 text-xs text-amber-700 font-medium">
+                            ⚠️ L'acheteur devra envoyer une capture d'écran après le transfert pour validation.
+                        </div>
+
                         <div className="flex gap-3">
                             <Button onClick={() => setShowPaymentModal(false)} variant="secondary" className="flex-1 py-4">Annuler</Button>
-                            <Button onClick={sendPaymentRequest} className="flex-1 py-4">Envoyer</Button>
+                            <Button onClick={sendPaymentRequest} loading={sending} className="flex-1 py-4">Envoyer</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Payment Proof Preview Modal */}
+            {paymentProofPreview && (
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+                    <div className="bg-white p-6 rounded-[32px] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <h3 className="text-lg font-black text-center mb-4">Confirmer l'envoi de la preuve</h3>
+                        <div className="rounded-2xl overflow-hidden border-2 border-slate-100 mb-4">
+                            <img src={paymentProofPreview} alt="Preuve" className="w-full h-auto" />
+                        </div>
+                        <p className="text-center text-slate-500 text-xs mb-4">Cette capture d'écran sera envoyée au vendeur comme preuve de paiement.</p>
+                        <div className="flex gap-3">
+                            <Button onClick={() => { setPaymentProofFile(null); setPaymentProofPreview(null); }} variant="secondary" className="flex-1 py-4">Annuler</Button>
+                            <Button onClick={sendPaymentProof} loading={sendingProof} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600">Envoyer</Button>
                         </div>
                     </div>
                 </div>

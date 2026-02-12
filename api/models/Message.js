@@ -12,8 +12,10 @@ const MessageSchema = new mongoose.Schema({
     sellerName: { type: String },
 
     content: { type: String },
-    type: { type: String, enum: ['text', 'image', 'payment_request', 'payment_confirmed', 'sale_confirmed'], default: 'text' },
+    type: { type: String, enum: ['text', 'image', 'payment_request', 'payment_proof', 'payment_confirmed', 'sale_confirmed'], default: 'text' },
     imageUrl: { type: String },
+    paymentAmount: { type: Number },
+    momoNumber: { type: String },
 
     readBy: [{ type: String }],
     timestamp: { type: Date, default: Date.now }

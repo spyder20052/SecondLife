@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, ChevronRight, Package, ShoppingBag, Heart, Edit2, Camera, Save, X, MapPin, Star } from 'lucide-react';
+import { User, LogOut, ChevronRight, Package, ShoppingBag, Heart, Edit2, Camera, Save, X, MapPin, Star, Smartphone } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -30,6 +30,7 @@ function Profile({ user: currentUser, products }) {
     const [editPassword, setEditPassword] = useState("");
     const [editPhoto, setEditPhoto] = useState(null); // File
     const [editPhotoPreview, setEditPhotoPreview] = useState(null); // URL/Base64
+    const [editMomoNumber, setEditMomoNumber] = useState("");
     const [saving, setSaving] = useState(false);
 
     // Fetch Profile Data (Public or Private extra data like city/ratings)
@@ -44,8 +45,9 @@ function Profile({ user: currentUser, products }) {
                     if (isPublicView) {
                         setProfileUser(data);
                     } else {
-                        // For private view, sync city if needed
+                        // For private view, sync city and momo if needed
                         setEditCity(data.city || "");
+                        setEditMomoNumber(data.momoNumber || "");
                         // Also fetch reviews for this user
                         fetchReviews(profileId);
                     }
@@ -87,6 +89,7 @@ function Profile({ user: currentUser, products }) {
         if (!currentUser) return;
         setEditName(currentUser.displayName || "");
         setEditCity(profileUser?.city || "");
+        setEditMomoNumber(profileUser?.momoNumber || "");
         setEditPhotoPreview(currentUser.photoURL);
         setIsEditing(true);
     };
@@ -115,7 +118,8 @@ function Profile({ user: currentUser, products }) {
             const updateData = {
                 displayName: editName,
                 city: editCity,
-                photoURL: photoURL
+                photoURL: photoURL,
+                momoNumber: editMomoNumber
             };
             if (editPassword) updateData.password = editPassword;
 
@@ -213,6 +217,7 @@ function Profile({ user: currentUser, products }) {
                     <div className="flex flex-col gap-5">
                         <Input label="Nom complet" value={editName} onChange={setEditName} icon={User} placeholder="Votre nom" />
                         <Input label="Ville" value={editCity} onChange={setEditCity} icon={MapPin} placeholder="Votre ville" />
+                        <Input label="Numéro MoMo" value={editMomoNumber} onChange={setEditMomoNumber} icon={Smartphone} placeholder="Ex: +229 97 00 00 00" />
                         <Input label="Nouveau mot de passe" type="password" value={editPassword} onChange={setEditPassword} icon={LogOut} placeholder="Laisser vide pour ne pas changer" />
                     </div>
                 </div>
@@ -261,6 +266,16 @@ function Profile({ user: currentUser, products }) {
                             <div className="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-wide">
                                 Vendeur Vérifié
                             </div>
+                            {!isPublicView && displayUser.momoNumber && (
+                                <div className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wide">
+                                    <Smartphone size={10} /> MoMo configuré
+                                </div>
+                            )}
+                            {!isPublicView && !displayUser.momoNumber && (
+                                <div className="inline-flex items-center gap-1 px-3 py-1 bg-rose-50 text-rose-500 rounded-full text-[10px] font-black uppercase tracking-wide cursor-pointer" onClick={startEditing}>
+                                    <Smartphone size={10} /> Configurer MoMo
+                                </div>
+                            )}
                             {displayUser.ratingCount > 0 && (
                                 <div className="inline-flex items-center px-2 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wide gap-1">
                                     <Heart size={10} className="fill-amber-500" />
@@ -347,7 +362,7 @@ function Profile({ user: currentUser, products }) {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

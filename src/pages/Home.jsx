@@ -3,7 +3,7 @@ import { Search, ShoppingBag, MapPin, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Badge from '../components/Badge';
 
-function Home({ products, searchQuery, setSearchQuery, categoryFilter, setCategoryFilter, isSearchFocus = false }) {
+function Home({ products = [], searchQuery, setSearchQuery, categoryFilter, setCategoryFilter, isSearchFocus = false }) {
     const navigate = useNavigate();
 
     const filteredProducts = products.filter(p => {

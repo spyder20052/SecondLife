@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
     displayName: { type: String },
     photoURL: { type: String },
     city: { type: String, default: '' },
+    momoNumber: { type: String, default: '' },
     ratingSum: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: false },

@@ -102,6 +102,7 @@ function ProductDetail({ products, user }) {
             sellerId: product.sellerId,
             buyerId: user.uid,
             productTitle: product.title,
+            productPrice: product.price,
             sellerName: product.sellerName || 'Vendeur',
             buyerName: user.displayName || 'Acheteur',
             sellerEmail: product.sellerEmail || null, // Assuming backend sends this or we don't need it
