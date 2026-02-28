@@ -401,7 +401,7 @@ function ChatDetail({ user }) {
 
     return (
         <div className="flex flex-col h-full bg-slate-50 relative">
-            <div className="p-4 border-b border-slate-100 flex items-center gap-4 bg-white/80 backdrop-blur-xl sticky top-0 z-10">
+            <div className="p-3 sm:p-4 border-b border-slate-100 flex items-center gap-3 sm:gap-4 bg-white/80 backdrop-blur-xl sticky top-0 z-10">
                 <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-500"><ArrowLeft size={20} /></button>
                 <div className="flex-1"><h3 className="font-black text-slate-900 leading-none">{counterpartyName}</h3><p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mt-1">{activeChat.productTitle}</p></div>
                 {isSeller && !isSaleConfirmed && (
@@ -419,7 +419,7 @@ function ChatDetail({ user }) {
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col gap-3 sm:gap-4">
                 {messages.map(msg => (
                     <div key={msg.id} className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[85%] px-5 py-3 rounded-[24px] text-sm font-medium shadow-sm 
@@ -517,7 +517,7 @@ function ChatDetail({ user }) {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-slate-100">
+            <div className="p-3 sm:p-4 bg-white border-t border-slate-100">
                 {imagePreview && (
                     <div className="mb-4 relative inline-block">
                         <img src={imagePreview} className="h-20 w-20 object-cover rounded-xl border border-slate-200" alt="" />
@@ -525,18 +525,18 @@ function ChatDetail({ user }) {
                     </div>
                 )}
 
-                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-3 items-end">
-                    <label className="p-4 text-slate-400 hover:text-indigo-600 cursor-pointer transition-colors bg-slate-50 rounded-2xl active:scale-95">
+                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2 sm:gap-3 items-end">
+                    <label className="p-3 sm:p-4 text-slate-400 hover:text-indigo-600 cursor-pointer transition-colors bg-slate-50 rounded-xl sm:rounded-2xl active:scale-95">
                         <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                         <Camera size={24} />
                     </label>
                     {isSeller && (
-                        <button type="button" onClick={handleOpenPaymentModal} disabled={loadingMomo} className="p-4 text-slate-400 hover:text-emerald-500 cursor-pointer transition-colors bg-slate-50 rounded-2xl active:scale-95 disabled:opacity-50">
+                        <button type="button" onClick={handleOpenPaymentModal} disabled={loadingMomo} className="p-3 sm:p-4 text-slate-400 hover:text-emerald-500 cursor-pointer transition-colors bg-slate-50 rounded-xl sm:rounded-2xl active:scale-95 disabled:opacity-50">
                             <Wallet size={24} />
                         </button>
                     )}
-                    <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message..." className="flex-1 min-w-0 bg-slate-50 rounded-2xl px-5 py-4 font-medium outline-none" />
-                    <button type="submit" className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-100 active:scale-90 flex-shrink-0">
+                    <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message..." className="flex-1 min-w-0 bg-slate-50 rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 text-sm sm:text-base font-medium outline-none" />
+                    <button type="submit" className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-100 active:scale-90 flex-shrink-0">
                         <Send size={24} />
                     </button>
                 </form>
@@ -544,7 +544,7 @@ function ChatDetail({ user }) {
 
             {/* MoMo Payment Modal */}
             {showPaymentModal && (
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
                     <div className="bg-white p-6 rounded-[32px] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[80vh] overflow-y-auto">
                         <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"><Smartphone size={32} /></div>
                         <h3 className="text-xl font-black text-center mb-2">Demande de paiement MoMo</h3>

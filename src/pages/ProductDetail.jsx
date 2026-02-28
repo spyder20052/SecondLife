@@ -208,23 +208,23 @@ function ProductDetail({ products, user }) {
             </div>
 
             {/* Product Info Card - Pull up effect */}
-            <div className="flex-1 px-6 pt-8 pb-32 -mt-10 bg-white rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] relative z-30">
+            <div className="flex-1 px-4 sm:px-6 pt-6 sm:pt-8 pb-32 -mt-10 bg-white rounded-t-[32px] sm:rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] relative z-30">
                 {/* Drag Handle */}
                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 opacity-50" />
 
-                <div className="flex justify-between items-start mb-6">
-                    <div className="flex-1 pr-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-3 sm:gap-0">
+                    <div className="flex-1 sm:pr-4">
                         <div className="flex gap-2 mb-3 flex-wrap">
                             <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md shadow-indigo-200">{product.category}</span>
                             {product.condition && <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-slate-200">{product.condition}</span>}
                         </div>
-                        <h1 className="text-2xl font-black text-slate-900 leading-tight mb-2">{product.title}</h1>
+                        <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-2">{product.title}</h1>
                         <div className="flex items-center gap-1.5 text-slate-400">
                             <MapPin size={14} className="text-indigo-500" />
                             <span className="text-xs font-bold uppercase tracking-wide">{product.city || sellerData?.city || 'Localisation inconnue'}</span>
                         </div>
                     </div>
-                    <div className="text-3xl font-black text-indigo-600 whitespace-nowrap tracking-tight">{product.price.toLocaleString()} <span className="text-sm align-top text-indigo-300">FCFA</span></div>
+                    <div className="text-2xl sm:text-3xl font-black text-indigo-600 tracking-tight">{product.price.toLocaleString()} <span className="text-sm align-top text-indigo-300">FCFA</span></div>
                 </div>
 
                 {/* Seller & Trust */}
@@ -280,7 +280,7 @@ function ProductDetail({ products, user }) {
             </div>
 
             {/* Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 z-40 pb-6 flex gap-3">
+            <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto p-3 sm:p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 z-40 pb-6 flex gap-2 sm:gap-3">
                 {isOwner ? (
                     <div className="flex-1 flex gap-3">
                         {isSold ? (

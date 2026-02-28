@@ -16,7 +16,7 @@ function BottomNav({ user, unreadCount = 0 }) {
     };
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-xl border-t border-slate-100 flex justify-around items-center py-4 px-6 z-50 rounded-t-[32px] shadow-2xl">
+        <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white/90 backdrop-blur-xl border-t border-slate-100 flex justify-around items-center py-3 sm:py-4 px-4 sm:px-6 z-50 rounded-t-[32px] shadow-2xl">
             <NavButton active={currentPath === '/'} icon={Home} label="Accueil" to="/" />
             <NavButton active={currentPath === '/discover'} icon={Search} label="Découvrir" to="/discover" />
             <NavButton active={currentPath === '/post'} icon={PlusCircle} label="Vendre" to="/post" onClick={(e) => checkAccess(e, '/post')} special />

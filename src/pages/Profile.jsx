@@ -233,9 +233,9 @@ function Profile({ user: currentUser, products }) {
     return (
         <div className="flex flex-col h-full bg-slate-50">
             {/* Header */}
-            <div className={`p-8 pb-10 bg-white rounded-b-[40px] shadow-sm z-10 relative ${isPublicView ? 'pt-12' : ''}`}>
-                <div className="flex items-center justify-between mb-8">
-                    <h1 className="text-xl font-black text-slate-900">{isPublicView ? 'Profil Vendeur' : 'Mon Profil'}</h1>
+            <div className={`p-5 sm:p-8 pb-8 sm:pb-10 bg-white rounded-b-[32px] sm:rounded-b-[40px] shadow-sm z-10 relative ${isPublicView ? 'pt-10 sm:pt-12' : ''}`}>
+                <div className="flex items-center justify-between mb-5 sm:mb-8">
+                    <h1 className="text-lg sm:text-xl font-black text-slate-900">{isPublicView ? 'Profil Vendeur' : 'Mon Profil'}</h1>
                     {!isPublicView && (
                         <div className="flex gap-2">
                             <button onClick={startEditing} className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl active:scale-90 hover:bg-indigo-100 transition-colors" title="Modifier">
@@ -253,16 +253,16 @@ function Profile({ user: currentUser, products }) {
                     )}
                 </div>
 
-                <div className="flex items-center gap-6 mb-8">
-                    <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-indigo-200 overflow-hidden">
+                <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <div className="w-18 h-18 sm:w-24 sm:h-24 rounded-[24px] sm:rounded-[32px] bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-2xl sm:text-4xl font-black shadow-2xl shadow-indigo-200 overflow-hidden flex-shrink-0">
                         {displayUser.photoURL ? <img src={displayUser.photoURL} className="w-full h-full object-cover" alt="Profile" /> : (displayUser.displayName || displayUser.email || 'U')[0].toUpperCase()}
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900">{displayUser.displayName || 'Utilisateur'}</h2>
+                        <h2 className="text-xl sm:text-2xl font-black text-slate-900">{displayUser.displayName || 'Utilisateur'}</h2>
                         <p className="text-xs text-slate-400 font-bold tracking-widest mt-1 flex items-center gap-1">
                             {displayUser.city && <><MapPin size={12} /> {displayUser.city} • </>} {isPublicView ? 'Membre vérifié' : displayUser.email}
                         </p>
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-2 sm:mt-3 flex gap-1.5 sm:gap-2 flex-wrap">
                             <div className="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-wide">
                                 Vendeur Vérifié
                             </div>
@@ -286,7 +286,7 @@ function Profile({ user: currentUser, products }) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <StatCard label="En ligne" value={userProducts.length} color="bg-indigo-500" icon={Package} />
                     <StatCard label="Ventes" value={soldCount} color="bg-emerald-500" icon={ShoppingBag} />
                 </div>

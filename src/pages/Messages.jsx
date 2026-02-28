@@ -88,7 +88,7 @@ function Messages({ user, conversations }) {
 
     return (
         <div className="flex flex-col h-full bg-white">
-            <div className="p-8 border-b border-slate-50"><h2 className="text-3xl font-black">Messages</h2></div>
+            <div className="p-5 sm:p-8 border-b border-slate-50"><h2 className="text-2xl sm:text-3xl font-black">Messages</h2></div>
             <div className="flex-1">
                 {uniqueConversations.length > 0 ? (
                     uniqueConversations.map(conv => {

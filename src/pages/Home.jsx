@@ -13,7 +13,7 @@ function Home({ products = [], searchQuery, setSearchQuery, categoryFilter, setC
     });
 
     return (
-        <div className="p-6 flex flex-col gap-6">
+        <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
             <div className="relative group">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <Search className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
@@ -28,13 +28,13 @@ function Home({ products = [], searchQuery, setSearchQuery, categoryFilter, setC
                 />
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar">
+            <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 no-scrollbar">
                 {['Tout', 'Vêtements', 'Meubles', 'Électronique', 'Loisirs', 'Maison'].map(cat => (
                     <Badge key={cat} active={categoryFilter === cat} onClick={() => setCategoryFilter(cat)}>{cat}</Badge>
                 ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-5 mb-10">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 mb-10">
                 {filteredProducts.map(product => (
                     <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} className="group cursor-pointer">
                         <div className="aspect-[4/5] bg-slate-100 rounded-[28px] relative overflow-hidden shadow-sm transition-all group-hover:shadow-xl group-hover:-translate-y-1">
@@ -43,7 +43,7 @@ function Home({ products = [], searchQuery, setSearchQuery, categoryFilter, setC
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-200"><Package size={48} /></div>
                             )}
-                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl text-sm font-black text-indigo-600 shadow-lg">{product.price} FCFA</div>
+                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/95 backdrop-blur px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-black text-indigo-600 shadow-lg">{product.price?.toLocaleString()} FCFA</div>
                         </div>
                         <div className="mt-3 px-2">
                             <h3 className="font-bold text-slate-800 line-clamp-1 text-sm group-hover:text-indigo-600 transition-colors">{product.title}</h3>

@@ -1,1 +1,56 @@
 @import "tailwindcss";
+
+/* Global Responsive Utilities */
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Safe area insets for notched phones (iPhone X+) */
+@supports (padding: max(0px)) {
+    .pb-safe {
+        padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+    }
+}
+
+/* Prevent overflow on very small screens */
+* {
+    min-width: 0;
+}
+
+/* Custom avatar size since w-18 doesn't exist in default TW */
+.w-18 {
+    width: 4.5rem;
+}
+
+.h-18 {
+    height: 4.5rem;
+}
+
+/* Improve tap targets on mobile */
+@media (max-width: 640px) {
+
+    button,
+    a,
+    [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+        /* Prevent iOS zoom on focus */
+    }
+}

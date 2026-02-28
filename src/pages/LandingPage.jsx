@@ -22,7 +22,7 @@ function LandingPage() {
                 <div className="absolute bottom-[-20%] left-[20%] w-[70vw] h-[70vw] bg-sky-400/20 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-4000" />
             </div>
 
-            <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col p-6">
+            <div className="relative z-10 max-w-lg mx-auto min-h-screen flex flex-col p-4 sm:p-6">
 
                 {/* Navbar Placeholder */}
                 <div className="flex justify-between items-center py-6 animate-in fade-in slide-in-from-top-4 duration-1000">
@@ -39,22 +39,22 @@ function LandingPage() {
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">La référence du seconde main</span>
                         </div>
 
-                        <h1 className="text-5xl sm:text-6xl font-black leading-[0.9] tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-[0.9] tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
                             Vendez.<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Aimez.</span><br />
                             Revivez.
                         </h1>
 
-                        <p className="text-lg font-medium text-slate-500 max-w-[80%] mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
+                        <p className="text-base sm:text-lg font-medium text-slate-500 max-w-[85%] sm:max-w-[80%] mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
                             La plateforme la plus simple pour donner une nouvelle vie à vos objets. Rejoignez la communauté.
                         </p>
                     </div>
 
                     {/* Floating Cards Graphic */}
-                    <div className="my-12 relative h-64 w-full perspective-1000">
+                    <div className="my-8 sm:my-12 relative h-48 sm:h-64 w-full perspective-1000">
                         {/* Card 1: Left */}
-                        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-48 bg-white p-4 rounded-3xl shadow-2xl shadow-indigo-200 transform -rotate-6 hover:rotate-0 transition-transform duration-500 z-10 animate-in fade-in slide-in-from-left-8 duration-1000 delay-500 hover:scale-105 border border-slate-100">
-                            <div className="w-full h-32 bg-slate-100 rounded-2xl mb-3 overflow-hidden relative">
+                        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-36 sm:w-48 bg-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl shadow-indigo-200 transform -rotate-6 hover:rotate-0 transition-transform duration-500 z-10 animate-in fade-in slide-in-from-left-8 duration-1000 delay-500 hover:scale-105 border border-slate-100">
+                            <div className="w-full h-24 sm:h-32 bg-slate-100 rounded-xl sm:rounded-2xl mb-2 sm:mb-3 overflow-hidden relative">
                                 <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" className="w-full h-full object-cover" alt="Shoe" />
                                 <div className="absolute top-2 right-2 bg-white/30 backdrop-blur-md p-1.5 rounded-full"><Heart size={12} className="text-white fill-white" /></div>
                             </div>
@@ -63,7 +63,7 @@ function LandingPage() {
                         </div>
 
                         {/* Card 2: Right */}
-                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-48 bg-white p-4 rounded-3xl shadow-2xl shadow-fuchsia-200 transform rotate-6 hover:rotate-0 transition-transform duration-500 z-20 animate-in fade-in slide-in-from-right-8 duration-1000 delay-700 hover:scale-105 border border-slate-100">
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-36 sm:w-48 bg-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl shadow-fuchsia-200 transform rotate-6 hover:rotate-0 transition-transform duration-500 z-20 animate-in fade-in slide-in-from-right-8 duration-1000 delay-700 hover:scale-105 border border-slate-100">
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500" />
                                 <div className="space-y-1">

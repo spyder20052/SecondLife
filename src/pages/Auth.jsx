@@ -176,7 +176,7 @@ export default function Auth() {
                         {resetToken ? "Nouveau mot de passe" : (isForgot ? "Mot de passe oublié ?" : (isLogin ? "Bon retour." : "Rejoignez-nous."))}
                     </h2>
                     <p className="text-slate-500">
-                        {resetToken ? "Définissez votre nouveau mot de passe sécurisé." : (isForgot ? "Entrez votre email pour recevoir un lien." : (isLogin ? "Connectez-vous à votre compte Node.js." : "Créez votre profil sur notre serveur custom."))}
+                        {resetToken ? "Définissez votre nouveau mot de passe sécurisé." : (isForgot ? "Entrez votre email pour recevoir un lien." : (isLogin ? "Connectez-vous à votre compte SecondLife." : "Créez votre profil sur SecondLife."))}
                     </p>
                 </div>
 
