@@ -187,27 +187,25 @@ export default function App() {
 
   if (loading) return <Loader />;
 
-  const isAnalytics = location.pathname.startsWith('/analytics');
-  const showNav = !isAnalytics && !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
-  const showHeader = !isAnalytics && !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
+  const isPMF = location.pathname.startsWith('/pmf');
+  const showNav = !isPMF && !['/auth', '/chat/detail', '/welcome'].some(p => location.pathname.startsWith(p)) && !location.pathname.includes('/product/');
+  const showHeader = !isPMF && !['/auth', '/chat/detail', '/welcome'].some(p => location.pathname.startsWith(p)) && !location.pathname.includes('/product/');
   const isChat = location.pathname.startsWith('/chat/detail');
   const isLanding = location.pathname.startsWith('/welcome');
 
+  // Classes du conteneur principal selon la route
   let mainClass = "flex-1 overflow-y-auto pb-24 scroll-smooth";
   if (isChat) mainClass = "flex-1 overflow-hidden h-full relative";
   if (isLanding) mainClass = "flex-1 overflow-y-auto h-full relative bg-slate-50";
+  if (isPMF) mainClass = "flex-1 overflow-y-auto";
 
-  // Analytics page renders full-screen, outside the mobile shell
-  if (isAnalytics) {
-    return (
-      <div style={{ width: '100vw', minHeight: '100vh', overflowX: 'hidden' }}>
-        <Analytics />
-      </div>
-    );
-  }
+  // Conteneur root : full-screen pour /pmf, mobile-shell pour le reste
+  const rootClass = isPMF
+    ? "w-full min-h-[100dvh] bg-slate-50 flex flex-col font-sans text-slate-900"
+    : "max-w-lg mx-auto h-[100dvh] bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative";
 
   return (
-    <div className="max-w-lg mx-auto h-[100dvh] bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative">
+    <div className={rootClass}>
       {showHeader && <Header user={user} />}
       <main className={mainClass}>
         <Routes>
@@ -222,7 +220,7 @@ export default function App() {
           <Route path="/chat/detail" element={<ChatDetail user={user} />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/welcome" element={<LandingPage />} />
-          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/pmf" element={<Analytics />} />
         </Routes>
       </main>
       {showNav && <BottomNav user={user} unreadCount={unreadCount} />}
