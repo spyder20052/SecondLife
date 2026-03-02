@@ -37,6 +37,17 @@ html {
     height: 4.5rem;
 }
 
+/* Spinner animation (used by PMF cohort table) */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Improve tap targets on mobile */
 @media (max-width: 640px) {
 

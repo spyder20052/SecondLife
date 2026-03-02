@@ -19,6 +19,7 @@ import ProductDetail from './pages/ProductDetail';
 import ChatDetail from './pages/ChatDetail';
 import Auth from './pages/Auth';
 import LandingPage from './pages/LandingPage';
+import Analytics from './pages/Analytics';
 
 export default function App() {
   const { addToast } = useToast();
@@ -186,14 +187,24 @@ export default function App() {
 
   if (loading) return <Loader />;
 
-  const showNav = !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
-  const showHeader = !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
+  const isAnalytics = location.pathname.startsWith('/analytics');
+  const showNav = !isAnalytics && !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
+  const showHeader = !isAnalytics && !['/auth', '/chat/detail', '/welcome'].some(path => location.pathname.startsWith(path)) && !location.pathname.includes('/product/');
   const isChat = location.pathname.startsWith('/chat/detail');
   const isLanding = location.pathname.startsWith('/welcome');
 
   let mainClass = "flex-1 overflow-y-auto pb-24 scroll-smooth";
   if (isChat) mainClass = "flex-1 overflow-hidden h-full relative";
   if (isLanding) mainClass = "flex-1 overflow-y-auto h-full relative bg-slate-50";
+
+  // Analytics page renders full-screen, outside the mobile shell
+  if (isAnalytics) {
+    return (
+      <div style={{ width: '100vw', minHeight: '100vh', overflowX: 'hidden' }}>
+        <Analytics />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto h-[100dvh] bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative">
@@ -211,6 +222,7 @@ export default function App() {
           <Route path="/chat/detail" element={<ChatDetail user={user} />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/welcome" element={<LandingPage />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Routes>
       </main>
       {showNav && <BottomNav user={user} unreadCount={unreadCount} />}

@@ -11,6 +11,7 @@ import productRoute from './routes/products.js';
 import messageRoute from './routes/messages.js';
 import reviewRoute from './routes/reviews.js';
 import authRoute from './routes/auth.js';
+import analyticsRoute from './routes/analytics.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,6 +42,7 @@ app.use('/api/users', userRoute);
 app.use('/api/products', productRoute);
 app.use('/api/messages', messageRoute);
 app.use('/api/reviews', reviewRoute);
+app.use('/api/analytics', analyticsRoute);
 
 app.get('/', (req, res) => {
     res.send('SecondLife API is running (ESM)!');
