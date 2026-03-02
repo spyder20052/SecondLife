@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node api/index.js",
-    "dev:all": "concurrently \"vite\" \"node api/index.js\"",
+    "server": "nodemon --watch server --watch api api/index.js",
+    "dev:all": "concurrently \"vite\" \"nodemon --watch server --watch api api/index.js\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -38,6 +38,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "nodemon": "^3.1.14",
     "vite": "^7.2.4"
   }
 }

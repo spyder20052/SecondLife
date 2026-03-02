@@ -5,35 +5,32 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-// Import Routes (NOTE: .js extension is required in ESM)
-import userRoute from './routes/users.js';
-import productRoute from './routes/products.js';
-import messageRoute from './routes/messages.js';
-import reviewRoute from './routes/reviews.js';
-import authRoute from './routes/auth.js';
-import analyticsRoute from './routes/analytics.js';
+// Routes — imported from server/ (NOT api/routes) to stay within 1 serverless function
+import userRoute from '../server/routes/users.js';
+import productRoute from '../server/routes/products.js';
+import messageRoute from '../server/routes/messages.js';
+import reviewRoute from '../server/routes/reviews.js';
+import authRoute from '../server/routes/auth.js';
+import analyticsRoute from '../server/routes/analytics.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load .env from parent directory
 dotenv.config({ path: join(__dirname, '../.env') });
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// MongoDB Connection
+// MongoDB
 const MONGODB_URI = process.env.MONGODB_URI;
-
 if (!MONGODB_URI) {
-    console.warn("⚠️ MONGODB_URI is not defined.");
+    console.warn('⚠️ MONGODB_URI is not defined.');
 } else {
     mongoose.connect(MONGODB_URI)
-        .then(() => console.log("✅ Connected to MongoDB"))
-        .catch(err => console.error("❌ MongoDB connection error:", err));
+        .then(() => console.log('✅ Connected to MongoDB'))
+        .catch(err => console.error('❌ MongoDB connection error:', err));
 }
 
 // Routes
@@ -44,24 +41,14 @@ app.use('/api/messages', messageRoute);
 app.use('/api/reviews', reviewRoute);
 app.use('/api/analytics', analyticsRoute);
 
-app.get('/', (req, res) => {
-    res.send('SecondLife API is running (ESM)!');
-});
+app.get('/', (req, res) => res.send('SecondLife API is running!'));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date() });
-});
-
-// Export for Vercel
 export default app;
 
-// Local Server Start
-// Check if file is run directly using import.meta.url
+// Local dev start
 const entryFile = process.argv[1];
-
 if (entryFile === __filename) {
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running locally on port ${PORT}`);
-    });
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 }

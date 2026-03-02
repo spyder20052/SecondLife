@@ -199,10 +199,21 @@ export default function App() {
   if (isLanding) mainClass = "flex-1 overflow-y-auto h-full relative bg-slate-50";
   if (isPMF) mainClass = "flex-1 overflow-y-auto";
 
-  // Conteneur root : full-screen pour /pmf, mobile-shell pour le reste
-  const rootClass = isPMF
-    ? "w-full min-h-[100dvh] bg-slate-50 flex flex-col font-sans text-slate-900"
-    : "max-w-lg mx-auto h-[100dvh] bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative";
+  // /pmf : full-screen avec inline styles (évite le purge Tailwind en prod)
+  if (isPMF) {
+    return (
+      <div style={{ width: '100%', minHeight: '100vh', background: '#f8fafc', fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
+        <main style={{ flex: 1, overflowY: 'auto' }}>
+          <Routes>
+            <Route path="/pmf" element={<Analytics />} />
+          </Routes>
+        </main>
+      </div>
+    );
+  }
+
+  // Conteneur root : mobile-shell pour le reste
+  const rootClass = "max-w-lg mx-auto h-[100dvh] bg-white flex flex-col font-sans text-slate-900 shadow-2xl overflow-hidden relative";
 
   return (
     <div className={rootClass}>
@@ -220,7 +231,6 @@ export default function App() {
           <Route path="/chat/detail" element={<ChatDetail user={user} />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/welcome" element={<LandingPage />} />
-          <Route path="/pmf" element={<Analytics />} />
         </Routes>
       </main>
       {showNav && <BottomNav user={user} unreadCount={unreadCount} />}

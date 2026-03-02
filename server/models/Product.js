@@ -7,7 +7,7 @@ const ProductSchema = new mongoose.Schema({
     category: { type: String, default: 'Autres' },
     city: { type: String },
     images: [{ type: String }],
-    imageUrl: { type: String }, // Main thumbnail
+    imageUrl: { type: String },
     updatedAt: { type: Date },
 
     sellerId: { type: String, required: true, index: true },
