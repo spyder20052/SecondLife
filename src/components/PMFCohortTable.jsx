@@ -266,34 +266,45 @@ export default function PMFCohortTable() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {cohorts.map((cohort, rowIdx) => (
-                                    <tr key={cohort.weekKey} style={{ background: rowIdx % 2 === 0 ? '#fff' : '#f8fafc' }}>
-                                        <td style={{ ...S.tdFixed, ...S.stickyCol1, textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>
-                                            {cohort.utilisateursAcquis}
-                                        </td>
-                                        <td style={{ ...S.tdFixed, ...S.stickyCol2, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap', fontSize: 12 }}>
-                                            {cohort.label}
-                                        </td>
-                                        {Array.from({ length: maxWeeks }, (_, wi) => {
-                                            const pct = cohort.retention[wi];
-                                            const isW1 = wi === 1;
-                                            const colors = getRetentionColor(pct, isW1, pmfTarget);
-                                            return (
-                                                <td key={wi} style={{
-                                                    ...S.tdCell,
-                                                    background: colors ? colors.bg : 'transparent',
-                                                    color: colors ? colors.text : '#cbd5e1',
-                                                    fontWeight: pct !== null ? 700 : 400,
-                                                    ...(isW1 && !colors ? { background: '#f5f3ff' } : {}),
-                                                    fontSize: isW1 ? 14 : 13,
-                                                }}>
-                                                    {pct !== null && pct !== undefined ? `${pct}%` : ''}
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
+                                {cohorts.map((cohort, rowIdx) => {
+                                    const isEmpty = cohort.isEmpty;
+                                    const rowBg = isEmpty ? '#f8fafc' : (rowIdx % 2 === 0 ? '#fff' : '#f8fafc');
+                                    return (
+                                        <tr key={cohort.weekKey} style={{ background: rowBg, opacity: isEmpty ? 0.55 : 1 }}>
+                                            <td style={{ ...S.tdFixed, ...S.stickyCol1, textAlign: 'right', fontWeight: isEmpty ? 400 : 700, color: isEmpty ? '#94a3b8' : '#0f172a', fontStyle: isEmpty ? 'italic' : 'normal' }}>
+                                                {cohort.utilisateursAcquis}
+                                            </td>
+                                            <td style={{ ...S.tdFixed, ...S.stickyCol2, fontWeight: 600, color: isEmpty ? '#94a3b8' : '#334155', whiteSpace: 'nowrap', fontSize: 12, fontStyle: isEmpty ? 'italic' : 'normal' }}>
+                                                {cohort.label}
+                                            </td>
+                                            {Array.from({ length: maxWeeks }, (_, wi) => {
+                                                if (isEmpty) {
+                                                    return (
+                                                        <td key={wi} style={{ ...S.tdCell, background: wi === 1 ? '#f5f3ff' : 'transparent', color: '#e2e8f0', textAlign: 'center' }}>
+                                                            —
+                                                        </td>
+                                                    );
+                                                }
+                                                const pct = cohort.retention[wi];
+                                                const isW1 = wi === 1;
+                                                const colors = getRetentionColor(pct, isW1, pmfTarget);
+                                                return (
+                                                    <td key={wi} style={{
+                                                        ...S.tdCell,
+                                                        background: colors ? colors.bg : (isW1 ? '#f5f3ff' : 'transparent'),
+                                                        color: colors ? colors.text : '#cbd5e1',
+                                                        fontWeight: pct !== null ? 700 : 400,
+                                                        fontSize: isW1 ? 14 : 13,
+                                                    }}>
+                                                        {pct !== null && pct !== undefined ? `${pct}%` : ''}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
+
                         </table>
                     </div>
                 </div>

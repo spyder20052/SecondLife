@@ -61,32 +61,55 @@ router.get('/pmf-cohorts', async (req, res) => {
         const totalSold = soldProducts.length;
         const uniqueBuyers = Object.keys(purchaseMap).length;
 
+        const MONTHS_FR = ['Jan.', 'Fév.', 'Mars', 'Avr.', 'Mai', 'Juin',
+            'Juil.', 'Août', 'Sep.', 'Oct.', 'Nov.', 'Déc.'];
+
+        function weekLabel(monday) {
+            const sunday = new Date(monday);
+            sunday.setDate(sunday.getDate() + 6);
+            return `${monday.getDate()}–${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]}`;
+        }
+
         const now = new Date();
         const MAX_WEEKS = 12;
+        const existingKeys = Object.keys(cohortMap).sort();
+        const firstMonday = startOfISOWeek(cohortMap[existingKeys[0]][0].registrationDate);
+        const currentMonday = startOfISOWeek(now);
 
-        const cohorts = Object.keys(cohortMap).sort().map(wk => {
-            const members = cohortMap[wk];
+        // Generate ALL weeks from first inscription to today (no gaps)
+        const allMondaysMs = [];
+        for (let d = new Date(firstMonday); d <= currentMonday; d.setDate(d.getDate() + 7)) {
+            allMondaysMs.push(new Date(d));
+        }
+
+        const cohorts = allMondaysMs.map(monday => {
+            const wk = weekKey(monday);
+            const members = cohortMap[wk] || [];
             const totalInCohort = members.length;
-            const cohortStart = startOfISOWeek(members[0].registrationDate);
-            const weeksElapsed = Math.floor((startOfISOWeek(now) - cohortStart) / (7 * 86400000));
+            const weeksElapsed = Math.floor((currentMonday - monday) / (7 * 86400000));
             const maxWeek = Math.min(weeksElapsed, MAX_WEEKS - 1);
 
             const retention = [];
-            for (let w = 0; w <= maxWeek; w++) {
-                const weekEnd = new Date(cohortStart.getTime() + (w + 1) * 7 * 86400000);
-                if (weekEnd > now && w > 0) { retention.push(null); continue; }
-                const activeCount = members.filter(({ uid, registrationDate }) => {
-                    const purchases = purchaseMap[uid];
-                    return purchases && purchases.some(d => relativeWeek(registrationDate, d) === w);
-                }).length;
-                retention.push(totalInCohort > 0 ? Math.round((activeCount / totalInCohort) * 100) : 0);
+            if (totalInCohort === 0) {
+                // Empty week: show null for all columns
+                for (let w = 0; w <= maxWeek; w++) retention.push(null);
+            } else {
+                for (let w = 0; w <= maxWeek; w++) {
+                    const weekEndDate = new Date(monday.getTime() + (w + 1) * 7 * 86400000);
+                    if (weekEndDate > now && w > 0) { retention.push(null); continue; }
+                    const activeCount = members.filter(({ uid, registrationDate }) => {
+                        const purchases = purchaseMap[uid];
+                        return purchases && purchases.some(d => relativeWeek(registrationDate, d) === w);
+                    }).length;
+                    retention.push(Math.round((activeCount / totalInCohort) * 100));
+                }
             }
 
-            const [yr, wnum] = wk.split('-W');
             return {
                 weekKey: wk,
-                label: `Sem. ${parseInt(wnum, 10)} · ${yr}`,
+                label: weekLabel(monday),
                 utilisateursAcquis: totalInCohort,
+                isEmpty: totalInCohort === 0,
                 retention,
                 pmfW1: retention[1] ?? null,
                 pmfReached: retention[1] !== null && retention[1] >= PMF_TARGET,
