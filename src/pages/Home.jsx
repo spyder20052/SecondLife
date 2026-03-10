@@ -16,7 +16,7 @@ function Home({ products = [], searchQuery, setSearchQuery, categoryFilter, setC
         <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
             <div className="relative group">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                    <Search className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
+                    <Search className="text-slate-400 group-focus-within:text-brand-800 transition-colors" size={20} />
                 </div>
                 <input
                     autoFocus={isSearchFocus}
@@ -24,7 +24,7 @@ function Home({ products = [], searchQuery, setSearchQuery, categoryFilter, setC
                     placeholder="Rechercher un trésor..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-3xl py-4.5 pl-12 pr-4 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-3xl py-4.5 pl-12 pr-4 shadow-sm outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 transition-all font-medium"
                 />
             </div>
 
@@ -43,10 +43,10 @@ function Home({ products = [], searchQuery, setSearchQuery, categoryFilter, setC
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-200"><Package size={48} /></div>
                             )}
-                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/95 backdrop-blur px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-black text-indigo-600 shadow-lg">{product.price?.toLocaleString()} FCFA</div>
+                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/95 backdrop-blur px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-black text-brand-800 shadow-lg">{product.price?.toLocaleString()} FCFA</div>
                         </div>
                         <div className="mt-3 px-2">
-                            <h3 className="font-bold text-slate-800 line-clamp-1 text-sm group-hover:text-indigo-600 transition-colors">{product.title}</h3>
+                            <h3 className="font-bold text-slate-800 line-clamp-1 text-sm group-hover:text-brand-800 transition-colors">{product.title}</h3>
                             <div className="flex items-center gap-1.5 text-slate-400 mt-1">
                                 <MapPin size={10} />
                                 <span className="text-[10px] font-bold uppercase tracking-wider">{product.city || 'Partout'}</span>

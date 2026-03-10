@@ -204,7 +204,7 @@ function Post({ user }) {
                 ))}
 
                 {allPreviews.length < 3 && (
-                    <label className="flex-shrink-0 w-28 h-28 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 gap-2 cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-500 transition-all snap-center">
+                    <label className="flex-shrink-0 w-28 h-28 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 gap-2 cursor-pointer hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 transition-all snap-center">
                         <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
                         <Camera size={24} />
                         <span className="text-[10px] font-bold uppercase">Ajouter</span>
@@ -221,7 +221,7 @@ function Post({ user }) {
 
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">État</label>
-                        <select value={condition} onChange={(e) => setCondition(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20">
+                        <select value={condition} onChange={(e) => setCondition(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20">
                             {['Neuf', 'Très bon état', 'Bon état', 'Satisfaisant', 'Pour pièces'].map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
@@ -229,7 +229,7 @@ function Post({ user }) {
 
                 <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Catégorie</label>
-                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20">
                         {['Mode', 'Maison', 'Multimédia', 'Loisirs', 'Autres'].map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                 </div>
@@ -240,7 +240,7 @@ function Post({ user }) {
                         type="button"
                         onClick={handleGeolocation}
                         disabled={locLoading}
-                        className="absolute right-4 top-[2.8rem] text-indigo-600 p-1 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="absolute right-4 top-[2.8rem] text-brand-800 p-1 hover:bg-brand-50 rounded-lg transition-colors"
                         title="Me géolocaliser"
                     >
                         <Navigation size={20} className={locLoading ? "animate-spin" : ""} />
@@ -250,7 +250,7 @@ function Post({ user }) {
                 <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Description</label>
                     <textarea
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-4 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-4 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20 resize-none"
                         rows={4}
                         placeholder="Décrivez votre article (taille, défauts éventuels...)"
                         value={desc}
@@ -258,7 +258,7 @@ function Post({ user }) {
                     />
                 </div>
 
-                <Button onClick={handleSubmit} loading={uploading} className="mt-4 py-4 shadow-xl shadow-indigo-200">
+                <Button onClick={handleSubmit} loading={uploading} className="mt-4 py-4 shadow-xl shadow-brand-200">
                     {isEditing ? "Valider les modifications" : "Publier maintenant"}
                 </Button>
             </div>

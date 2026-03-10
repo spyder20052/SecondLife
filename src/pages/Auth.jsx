@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { User, Mail, Lock, Upload, Info, XCircle, MapPin } from 'lucide-react';
+import { User, Mail, Lock, Upload, Info, ArrowLeft, MapPin } from 'lucide-react';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { useToast } from '../components/Toast';
@@ -166,13 +166,13 @@ export default function Auth() {
 
     return (
         <div className="flex flex-col h-full bg-white relative overflow-y-auto">
-            <button onClick={() => navigate('/')} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition-colors z-10">
-                <XCircle size={32} strokeWidth={1.5} />
+            <button onClick={() => navigate('/welcome')} className="absolute top-6 left-6 flex items-center gap-1.5 text-slate-400 hover:text-slate-800 transition-colors z-10 text-xs font-bold">
+                <ArrowLeft size={16} /> Accueil
             </button>
 
             <div className="flex-1 flex flex-col justify-center p-8 max-w-sm mx-auto w-full">
                 <div className="mb-8">
-                    <h2 className="text-3xl font-black text-indigo-600 leading-tight mb-2">
+                    <h2 className="text-3xl font-black text-brand-800 leading-tight mb-2">
                         {resetToken ? "Nouveau mot de passe" : (isForgot ? "Mot de passe oublié ?" : (isLogin ? "Bon retour." : "Rejoignez-nous."))}
                     </h2>
                     <p className="text-slate-500">
@@ -188,7 +188,7 @@ export default function Auth() {
                                 <Info size={14} className="shrink-0" /> {err}
                             </div>
                         )}
-                        <Button type="submit" loading={loading} className="mt-4 py-4 text-base shadow-lg shadow-indigo-200">
+                        <Button type="submit" loading={loading} className="mt-4 py-4 text-base shadow-lg shadow-brand-200">
                             Modifier le mot de passe
                         </Button>
                         <button type="button" onClick={() => navigate('/auth')} className="text-center text-sm font-bold text-slate-400 mt-4 hover:text-slate-600">
@@ -203,7 +203,7 @@ export default function Auth() {
                                 <Info size={14} className="shrink-0" /> {err}
                             </div>
                         )}
-                        <Button type="submit" loading={loading} className="mt-4 py-4 text-base shadow-lg shadow-indigo-200">
+                        <Button type="submit" loading={loading} className="mt-4 py-4 text-base shadow-lg shadow-brand-200">
                             Envoyer le lien
                         </Button>
                         <button type="button" onClick={() => { setIsForgot(false); setErr(""); }} className="text-center text-sm font-bold text-slate-400 mt-4 hover:text-slate-600">
@@ -214,7 +214,7 @@ export default function Auth() {
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         {!isLogin && (
                             <div className="flex flex-col items-center mb-4">
-                                <div className="relative w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-indigo-500 transition-colors">
+                                <div className="relative w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-brand-600 transition-colors">
                                     <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                     {previewUrl ? (
                                         <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -240,7 +240,7 @@ export default function Auth() {
 
                         {isLogin && (
                             <div className="text-right">
-                                <button type="button" onClick={() => { setIsForgot(true); setErr(""); }} className="text-xs font-bold text-indigo-600 hover:underline">
+                                <button type="button" onClick={() => { setIsForgot(true); setErr(""); }} className="text-xs font-bold text-brand-800 hover:underline">
                                     Mot de passe oublié ?
                                 </button>
                             </div>
@@ -252,7 +252,7 @@ export default function Auth() {
                             </div>
                         )}
 
-                        <Button type="submit" loading={loading} className="mt-4 py-4 text-base shadow-lg shadow-indigo-200">
+                        <Button type="submit" loading={loading} className="mt-4 py-4 text-base shadow-lg shadow-brand-200">
                             {isLogin ? "Se connecter" : "Créer mon compte"}
                         </Button>
                     </form>
@@ -262,7 +262,7 @@ export default function Auth() {
                     <div className="mt-8 text-center">
                         <button
                             onClick={() => { setIsLogin(!isLogin); setErr(""); }}
-                            className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors"
+                            className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-brand-800 transition-colors"
                         >
                             {isLogin ? "Pas de compte ? Créer" : "Déjà membre ? Se connecter"}
                         </button>

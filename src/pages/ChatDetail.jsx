@@ -403,9 +403,9 @@ function ChatDetail({ user }) {
         <div className="flex flex-col h-full bg-slate-50 relative">
             <div className="p-3 sm:p-4 border-b border-slate-100 flex items-center gap-3 sm:gap-4 bg-white/80 backdrop-blur-xl sticky top-0 z-10">
                 <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-500"><ArrowLeft size={20} /></button>
-                <div className="flex-1"><h3 className="font-black text-slate-900 leading-none">{counterpartyName}</h3><p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mt-1">{activeChat.productTitle}</p></div>
+                <div className="flex-1"><h3 className="font-black text-slate-900 leading-none">{counterpartyName}</h3><p className="text-[9px] font-black text-brand-800 uppercase tracking-widest mt-1">{activeChat.productTitle}</p></div>
                 {isSeller && !isSaleConfirmed && (
-                    <button onClick={confirmSale} disabled={sending} className="bg-indigo-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-lg shadow-indigo-200 active:scale-95">
+                    <button onClick={confirmSale} disabled={sending} className="bg-brand-800 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-lg shadow-brand-200 active:scale-95">
                         Valider la vente
                     </button>
                 )}
@@ -424,7 +424,7 @@ function ChatDetail({ user }) {
                     <div key={msg.id} className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[85%] px-5 py-3 rounded-[24px] text-sm font-medium shadow-sm 
                             ${msg.type === 'payment_confirmed' ? 'bg-emerald-500 text-white w-full text-center' :
-                                msg.senderId === user.uid ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'}`}>
+                                msg.senderId === user.uid ? 'bg-brand-800 text-white rounded-tr-none' : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'}`}>
 
                             {/* Content Rendering */}
                             {msg.type === 'image' && msg.imageUrl && (
@@ -442,15 +442,15 @@ function ChatDetail({ user }) {
                                         <span className="font-black text-xs uppercase tracking-wider">Paiement MoMo</span>
                                     </div>
                                     {msg.momoNumber && (
-                                        <div className={`p-4 rounded-2xl text-sm space-y-2 ${msg.senderId === user.uid ? 'bg-white/15' : 'bg-indigo-50 border border-indigo-100'}`}>
-                                            <div className={`font-black text-base ${msg.senderId === user.uid ? 'text-white' : 'text-indigo-700'}`}>
+                                        <div className={`p-4 rounded-2xl text-sm space-y-2 ${msg.senderId === user.uid ? 'bg-white/15' : 'bg-brand-50 border border-brand-100'}`}>
+                                            <div className={`font-black text-base ${msg.senderId === user.uid ? 'text-white' : 'text-brand-700'}`}>
                                                 💰 {(msg.paymentAmount || 0).toLocaleString()} FCFA
                                             </div>
-                                            <div className={`text-xs font-bold ${msg.senderId === user.uid ? 'text-indigo-100' : 'text-indigo-500'}`}>
+                                            <div className={`text-xs font-bold ${msg.senderId === user.uid ? 'text-brand-100' : 'text-brand-500'}`}>
                                                 📞 Numéro : {msg.momoNumber}
                                             </div>
-                                            <hr className={`${msg.senderId === user.uid ? 'border-white/20' : 'border-indigo-100'}`} />
-                                            <div className={`text-xs space-y-1.5 ${msg.senderId === user.uid ? 'text-indigo-100' : 'text-slate-600'}`}>
+                                            <hr className={`${msg.senderId === user.uid ? 'border-white/20' : 'border-brand-100'}`} />
+                                            <div className={`text-xs space-y-1.5 ${msg.senderId === user.uid ? 'text-brand-100' : 'text-slate-600'}`}>
                                                 <p className="font-bold">📋 Étapes :</p>
                                                 <p>1️⃣ Ouvrez votre app MoMo</p>
                                                 <p>2️⃣ « Envoyer de l'argent »</p>
@@ -472,7 +472,7 @@ function ChatDetail({ user }) {
                                         </div>
                                     )}
                                     {msg.senderId !== user.uid && !messages.some(m => m.type === 'payment_proof') && (
-                                        <label className="bg-white text-indigo-600 py-3 px-4 rounded-xl font-bold text-xs shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors">
+                                        <label className="bg-white text-brand-800 py-3 px-4 rounded-xl font-bold text-xs shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2 hover:bg-brand-50 transition-colors">
                                             <Upload size={16} /> Envoyer la preuve de paiement
                                             <input type="file" accept="image/*" onChange={handlePaymentProofChange} className="hidden" />
                                         </label>
@@ -526,7 +526,7 @@ function ChatDetail({ user }) {
                 )}
 
                 <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2 sm:gap-3 items-end">
-                    <label className="p-3 sm:p-4 text-slate-400 hover:text-indigo-600 cursor-pointer transition-colors bg-slate-50 rounded-xl sm:rounded-2xl active:scale-95">
+                    <label className="p-3 sm:p-4 text-slate-400 hover:text-brand-800 cursor-pointer transition-colors bg-slate-50 rounded-xl sm:rounded-2xl active:scale-95">
                         <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                         <Camera size={24} />
                     </label>
@@ -536,7 +536,7 @@ function ChatDetail({ user }) {
                         </button>
                     )}
                     <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message..." className="flex-1 min-w-0 bg-slate-50 rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 text-sm sm:text-base font-medium outline-none" />
-                    <button type="submit" className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-100 active:scale-90 flex-shrink-0">
+                    <button type="submit" className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-brand-800 text-white flex items-center justify-center shadow-xl shadow-brand-100 active:scale-90 flex-shrink-0">
                         <Send size={24} />
                     </button>
                 </form>
@@ -557,7 +557,7 @@ function ChatDetail({ user }) {
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-slate-500 font-medium">Montant</span>
-                                <span className="font-black text-indigo-600">{(productPrice || 0).toLocaleString()} FCFA</span>
+                                <span className="font-black text-brand-800">{(productPrice || 0).toLocaleString()} FCFA</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-slate-500 font-medium">N° MoMo</span>

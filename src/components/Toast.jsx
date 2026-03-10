@@ -29,7 +29,7 @@ export const ToastProvider = ({ children }) => {
                     >
                         {toast.type === 'success' && <Check className="text-emerald-400" size={20} />}
                         {toast.type === 'error' && <AlertCircle className="text-rose-400" size={20} />}
-                        {toast.type === 'info' && <Info className="text-indigo-400" size={20} />}
+                        {toast.type === 'info' && <Info className="text-brand-300" size={20} />}
                         <span className="font-bold text-sm flex-1">{toast.message}</span>
                         <button onClick={() => removeToast(toast.id)} className="text-slate-500 hover:text-white"><X size={16} /></button>
                     </div>

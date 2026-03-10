@@ -162,7 +162,7 @@ function Profile({ user: currentUser, products }) {
     // Show Login if trying to access private profile without auth
     if (!isPublicView && (!currentUser || currentUser.isAnonymous)) return (
         <div className="p-10 flex flex-col items-center justify-center text-center gap-8 h-full">
-            <div className="w-24 h-24 bg-indigo-50 rounded-[40px] flex items-center justify-center text-indigo-600 shadow-2xl shadow-indigo-100"><User size={48} /></div>
+            <div className="w-24 h-24 bg-brand-50 rounded-[40px] flex items-center justify-center text-brand-800 shadow-2xl shadow-brand-100"><User size={48} /></div>
             <h2 className="text-3xl font-black">Rejoignez-nous !</h2>
             <Button onClick={() => navigate('/auth')} className="w-full py-5">Se connecter / S'inscrire</Button>
         </div>
@@ -200,14 +200,14 @@ function Profile({ user: currentUser, products }) {
                     {/* Photo Upload */}
                     <div className="flex justify-center">
                         <label className="relative cursor-pointer group">
-                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-100 group-hover:border-indigo-100 transition-colors">
+                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-100 group-hover:border-brand-100 transition-colors">
                                 {editPhotoPreview ? (
                                     <img src={editPhotoPreview} className="w-full h-full object-cover" alt="Preview" />
                                 ) : (
                                     <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-300"><User size={48} /></div>
                                 )}
                             </div>
-                            <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2.5 rounded-full shadow-lg border-2 border-white">
+                            <div className="absolute bottom-0 right-0 bg-brand-800 text-white p-2.5 rounded-full shadow-lg border-2 border-white">
                                 <Camera size={20} />
                             </div>
                             <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
@@ -222,7 +222,7 @@ function Profile({ user: currentUser, products }) {
                     </div>
                 </div>
                 <div className="p-6 border-t border-slate-100">
-                    <Button onClick={handleSaveProfile} loading={saving} className="py-4 shadow-xl shadow-indigo-200">
+                    <Button onClick={handleSaveProfile} loading={saving} className="py-4 shadow-xl shadow-brand-200">
                         <Save size={20} className="mr-2" /> Enregistrer
                     </Button>
                 </div>
@@ -238,7 +238,7 @@ function Profile({ user: currentUser, products }) {
                     <h1 className="text-lg sm:text-xl font-black text-slate-900">{isPublicView ? 'Profil Vendeur' : 'Mon Profil'}</h1>
                     {!isPublicView && (
                         <div className="flex gap-2">
-                            <button onClick={startEditing} className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl active:scale-90 hover:bg-indigo-100 transition-colors" title="Modifier">
+                            <button onClick={startEditing} className="p-3 bg-brand-50 text-brand-800 rounded-2xl active:scale-90 hover:bg-brand-100 transition-colors" title="Modifier">
                                 <Edit2 size={20} />
                             </button>
                             <button onClick={handleSignOut} className="p-3 bg-rose-50 text-rose-500 rounded-2xl active:scale-90 hover:bg-rose-100 transition-colors" title="Déconnexion">
@@ -254,7 +254,7 @@ function Profile({ user: currentUser, products }) {
                 </div>
 
                 <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    <div className="w-18 h-18 sm:w-24 sm:h-24 rounded-[24px] sm:rounded-[32px] bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-2xl sm:text-4xl font-black shadow-2xl shadow-indigo-200 overflow-hidden flex-shrink-0">
+                    <div className="w-18 h-18 sm:w-24 sm:h-24 rounded-[24px] sm:rounded-[32px] bg-gradient-to-br from-brand-800 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-4xl font-black shadow-2xl shadow-brand-200 overflow-hidden flex-shrink-0">
                         {displayUser.photoURL ? <img src={displayUser.photoURL} className="w-full h-full object-cover" alt="Profile" /> : (displayUser.displayName || displayUser.email || 'U')[0].toUpperCase()}
                     </div>
                     <div>
@@ -287,7 +287,7 @@ function Profile({ user: currentUser, products }) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    <StatCard label="En ligne" value={userProducts.length} color="bg-indigo-500" icon={Package} />
+                    <StatCard label="En ligne" value={userProducts.length} color="bg-brand-600" icon={Package} />
                     <StatCard label="Ventes" value={soldCount} color="bg-emerald-500" icon={ShoppingBag} />
                 </div>
             </div>
@@ -319,7 +319,7 @@ function Profile({ user: currentUser, products }) {
                                 <div className="w-16 h-16 rounded-2xl bg-slate-50 overflow-hidden"><img src={p.imageUrl} alt="" className="w-full h-full object-cover" /></div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-black text-slate-800 truncate text-sm">{p.title}</h4>
-                                    <p className="text-indigo-600 font-black text-sm">{p.price} FCFA</p>
+                                    <p className="text-brand-800 font-black text-sm">{p.price} FCFA</p>
                                 </div>
                                 <div className="p-3 bg-slate-50 text-slate-400 rounded-xl"><ChevronRight size={18} /></div>
                             </div>
@@ -349,11 +349,11 @@ function Profile({ user: currentUser, products }) {
 
                     {!isPublicView && activeTab === 'sold' && (
                         soldProducts.length > 0 ? soldProducts.map(p => (
-                            <div key={p.id} onClick={() => handleRelist(p)} className="bg-white/50 p-4 rounded-[28px] border border-slate-100 flex gap-5 items-center opacity-70 hover:opacity-100 cursor-pointer transition-all active:scale-95 hover:bg-white hover:shadow-lg border-2 border-transparent hover:border-indigo-100">
+                            <div key={p.id} onClick={() => handleRelist(p)} className="bg-white/50 p-4 rounded-[28px] border border-slate-100 flex gap-5 items-center opacity-70 hover:opacity-100 cursor-pointer transition-all active:scale-95 hover:bg-white hover:shadow-lg border-2 border-transparent hover:border-brand-100">
                                 <div className="w-16 h-16 rounded-2xl bg-slate-50 overflow-hidden grayscale group-hover:grayscale-0"><img src={p.imageUrl} alt="" className="w-full h-full object-cover" /></div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-black text-slate-800 truncate text-sm line-through">{p.title}</h4>
-                                    <div className="text-indigo-600 font-bold text-[10px] uppercase tracking-wide flex items-center gap-1">
+                                    <div className="text-brand-800 font-bold text-[10px] uppercase tracking-wide flex items-center gap-1">
                                         <Package size={12} /> Remettre en vente
                                     </div>
                                 </div>

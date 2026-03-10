@@ -36,28 +36,26 @@ function BottomNav({ user, unreadCount = 0 }) {
 function NavButton({ active, icon: Icon, label, to, onClick, special = false, badge = 0 }) {
     if (special) return (
         <Link to={to} onClick={onClick} className="flex flex-col items-center -mt-12 group">
-            <div className={`w-16 h-16 rounded-[24px] bg-gradient-to-br ${COLORS.gradient} flex items-center justify-center text-white shadow-2xl shadow-indigo-300 transform transition-all group-active:scale-90 group-hover:rotate-6`}>
+            <div className={`w-16 h-16 rounded-[24px] bg-gradient-to-br ${COLORS.gradient} flex items-center justify-center text-white shadow-2xl shadow-brand-300 transform transition-all group-active:scale-90 group-hover:rotate-6`}>
                 <PlusCircle size={32} />
             </div>
-            <span className="text-[10px] mt-2 font-black text-indigo-600 uppercase tracking-tighter">Vendre</span>
+            <span className="text-[10px] mt-2 font-black text-brand-800 uppercase tracking-tighter">Vendre</span>
         </Link>
     );
 
     return (
         <Link to={to} onClick={onClick} className="flex flex-col items-center gap-1.5 group relative">
-            <div className={`transition-all relative ${active ? 'text-indigo-600 scale-110' : 'text-slate-300 group-hover:text-slate-500'}`}>
+            <div className={`transition-all relative ${active ? 'text-brand-800 scale-110' : 'text-slate-300 group-hover:text-slate-500'}`}>
                 <Icon size={24} strokeWidth={active ? 2.5 : 2} />
-                {/* Notification Badge */}
                 {badge > 0 && (
                     <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 shadow-lg animate-pulse">
                         {badge > 99 ? '99+' : badge}
                     </span>
                 )}
             </div>
-            <span className={`text-[9px] font-black uppercase tracking-wider transition-all ${active ? 'text-indigo-600' : 'text-slate-300'}`}>{label}</span>
+            <span className={`text-[9px] font-black uppercase tracking-wider transition-all ${active ? 'text-brand-800' : 'text-slate-300'}`}>{label}</span>
         </Link>
     );
 }
 
 export default BottomNav;
-

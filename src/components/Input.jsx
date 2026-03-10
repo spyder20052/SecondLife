@@ -10,7 +10,7 @@ const Input = ({ label, placeholder, value, onChange, type = "text", icon: Icon 
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className={`w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 ${Icon ? 'pl-11' : 'px-4'} pr-4 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium placeholder:text-slate-300`}
+                className={`w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 ${Icon ? 'pl-11' : 'px-4'} pr-4 outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 transition-all font-medium placeholder:text-slate-300`}
             />
         </div>
     </div>

@@ -69,7 +69,7 @@ function Discover() {
         const displayImage = product.imageUrl || (product.images && product.images.length > 0 ? product.images[0] : null);
 
         return (
-            <div onClick={() => navigate(`/product/${product.id}`)} className="bg-white rounded-[24px] overflow-hidden mb-4 shadow-sm border border-slate-100 break-inside-avoid relative group active:scale-95 transition-all cursor-pointer hover:shadow-xl hover:shadow-indigo-100/50">
+            <div onClick={() => navigate(`/product/${product.id}`)} className="bg-white rounded-[24px] overflow-hidden mb-4 shadow-sm border border-slate-100 break-inside-avoid relative group active:scale-95 transition-all cursor-pointer hover:shadow-xl hover:shadow-brand-100/50">
                 <div className="relative aspect-[4/5] bg-slate-100 overflow-hidden">
                     {displayImage ? (
                         <img src={displayImage} alt={product.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -85,7 +85,7 @@ function Discover() {
                 <div className="p-4">
                     <h3 className="font-bold text-slate-800 text-sm mb-1 leading-tight line-clamp-2">{product.title}</h3>
                     <div className="flex justify-between items-end mt-2">
-                        <p className="text-indigo-600 font-black text-sm">{product.price.toLocaleString()} FCFA</p>
+                        <p className="text-brand-800 font-black text-sm">{product.price.toLocaleString()} FCFA</p>
                         <span className="text-[9px] px-2 py-1 bg-slate-50 text-slate-400 rounded-lg font-bold uppercase tracking-wide">{product.category}</span>
                     </div>
                 </div>
@@ -111,9 +111,9 @@ function Discover() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher une pépite..."
-                        className="w-full bg-slate-50 border-2 border-transparent outline-none rounded-2xl py-3 sm:py-4 pl-12 pr-4 font-bold text-sm sm:text-base text-slate-600 placeholder:text-slate-300 transition-all focus:bg-white focus:border-indigo-100 focus:shadow-lg focus:shadow-indigo-50"
+                        className="w-full bg-slate-50 border-2 border-transparent outline-none rounded-2xl py-3 sm:py-4 pl-12 pr-4 font-bold text-sm sm:text-base text-slate-600 placeholder:text-slate-300 transition-all focus:bg-white focus:border-brand-100 focus:shadow-lg focus:shadow-brand-50"
                     />
-                    <div className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors">
+                    <div className="absolute top-1/2 -translate-y-1/2 left-4 text-slate-300 group-focus-within:text-brand-600 transition-colors">
                         <Search size={20} />
                     </div>
                 </div>
@@ -126,8 +126,8 @@ function Discover() {
                             onClick={() => setActiveCategory(cat)}
                             className={`flex-shrink-0 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full font-bold text-[11px] sm:text-xs transition-all duration-300 
                                 ${activeCategory === cat
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-300 scale-105 ring-4 ring-indigo-50'
-                                    : 'bg-white text-slate-500 border border-slate-100 hover:border-indigo-100 hover:text-indigo-600'}`}
+                                    ? 'bg-brand-800 text-white shadow-lg shadow-brand-300 scale-105 ring-4 ring-brand-50'
+                                    : 'bg-white text-slate-500 border border-slate-100 hover:border-brand-100 hover:text-brand-800'}`}
                         >
                             {cat}
                         </button>

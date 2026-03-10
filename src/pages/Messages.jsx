@@ -101,24 +101,24 @@ function Messages({ user, conversations }) {
                         const isUnread = !conv.readBy?.includes(user?.uid) && conv.senderId !== user?.uid;
 
                         return (
-                            <div key={conv.id} onClick={() => handleSelectChat(conv)} className={`p-4 sm:p-6 border-b border-slate-50 flex gap-4 items-center cursor-pointer transition-all group ${isUnread ? 'bg-indigo-50/40 relative' : 'hover:bg-slate-50'}`}>
+                            <div key={conv.id} onClick={() => handleSelectChat(conv)} className={`p-4 sm:p-6 border-b border-slate-50 flex gap-4 items-center cursor-pointer transition-all group ${isUnread ? 'bg-brand-50/40 relative' : 'hover:bg-slate-50'}`}>
                                 {isUnread && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-r-full" />
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-800 rounded-r-full" />
                                 )}
-                                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xl sm:text-2xl uppercase flex-shrink-0 relative">
+                                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-800 font-black text-xl sm:text-2xl uppercase flex-shrink-0 relative">
                                     {(counterpartyName || "?")[0]}
-                                    {isUnread && <div className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 rounded-full border-2 border-white" />}
+                                    {isUnread && <div className="absolute -top-1 -right-1 w-4 h-4 bg-brand-800 rounded-full border-2 border-white" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline mb-1">
-                                        <h3 className={`font-black text-slate-800 truncate text-base sm:text-lg ${isUnread ? 'text-indigo-900' : ''}`}>{counterpartyName}</h3>
+                                        <h3 className={`font-black text-slate-800 truncate text-base sm:text-lg ${isUnread ? 'text-brand-900' : ''}`}>{counterpartyName}</h3>
                                         {conv.timestamp && (
-                                            <span className={`text-[10px] font-bold ml-2 hidden sm:block ${isUnread ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                            <span className={`text-[10px] font-bold ml-2 hidden sm:block ${isUnread ? 'text-brand-800' : 'text-slate-400'}`}>
                                                 {new Date(conv.timestamp.seconds * 1000).toLocaleDateString()}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-indigo-600 text-[10px] font-black uppercase tracking-widest truncate mb-0.5">{conv.productTitle}</p>
+                                    <p className="text-brand-800 text-[10px] font-black uppercase tracking-widest truncate mb-0.5">{conv.productTitle}</p>
                                     <p className={`text-sm truncate font-medium ${isUnread ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>{conv.content}</p>
                                 </div>
                             </div>

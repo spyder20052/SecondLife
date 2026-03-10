@@ -12,6 +12,7 @@ import messageRoute from '../server/routes/messages.js';
 import reviewRoute from '../server/routes/reviews.js';
 import authRoute from '../server/routes/auth.js';
 import analyticsRoute from '../server/routes/analytics.js';
+import waitlistRoute from '../server/routes/waitlist.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,6 +41,7 @@ app.use('/api/products', productRoute);
 app.use('/api/messages', messageRoute);
 app.use('/api/reviews', reviewRoute);
 app.use('/api/analytics', analyticsRoute);
+app.use('/api/waitlist', waitlistRoute);
 
 app.get('/', (req, res) => res.send('SecondLife API is running!'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

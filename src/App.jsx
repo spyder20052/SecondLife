@@ -19,6 +19,7 @@ import ProductDetail from './pages/ProductDetail';
 import ChatDetail from './pages/ChatDetail';
 import Auth from './pages/Auth';
 import LandingPage from './pages/LandingPage';
+import WaitlistAdmin from './pages/WaitlistAdmin';
 import Analytics from './pages/Analytics';
 
 export default function App() {
@@ -39,12 +40,6 @@ export default function App() {
   // AUTH INITIALIZATION (Custom Backend)
   useEffect(() => {
     const initAuth = async () => {
-      // Check first visit
-      const hasVisited = localStorage.getItem('has_visited');
-      if (!hasVisited && !location.pathname.startsWith('/welcome')) {
-        navigate('/welcome');
-      }
-
       const token = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
 
@@ -61,11 +56,9 @@ export default function App() {
 
           if (res.ok) {
             const verifiedUser = await res.json();
-            // Merge local and verified (e.g. verified has strict latest data)
             setUser(prev => ({ ...prev, ...verifiedUser }));
-            localStorage.setItem('user', JSON.stringify(verifiedUser)); // Update cache
+            localStorage.setItem('user', JSON.stringify(verifiedUser));
           } else {
-            // Token invalid or expired
             console.warn("Token invalid, logging out");
             localStorage.removeItem('token');
             localStorage.removeItem('user');
@@ -73,8 +66,6 @@ export default function App() {
           }
         } catch (err) {
           console.error("Auth verification failed", err);
-          // Don't logout on network error, assume offline valid for now?
-          // For security, maybe logout, but for UX, keep session if possible.
         }
       }
       setLoading(false);
@@ -83,12 +74,26 @@ export default function App() {
     initAuth();
   }, []);
 
-  // Protect private routes
+  // Protect routes: redirect to /welcome if not authed and not waitlisted
   useEffect(() => {
     if (loading) return;
-    const privatePrefixes = ['/post', '/messages', '/profile', '/chat'];
-    const isPrivate = privatePrefixes.some(prefix => location.pathname.startsWith(prefix));
-    if (!user && isPrivate) {
+    const publicPaths = ['/welcome', '/auth', '/wl-admin', '/pmf'];
+    const isPublic = publicPaths.some(p => location.pathname.startsWith(p));
+    if (isPublic) return;
+
+    const isWaitlisted = localStorage.getItem('waitlist_registered');
+    const hasToken = !!localStorage.getItem('token');
+
+    // If not authenticated AND not waitlisted → redirect to welcome
+    if (!user && !hasToken && !isWaitlisted) {
+      navigate('/welcome');
+      return;
+    }
+
+    // Logged-in-only routes (post, messages, profile, chat) → redirect to /auth
+    const authOnlyPrefixes = ['/post', '/messages', '/profile', '/chat'];
+    const needsAuth = authOnlyPrefixes.some(prefix => location.pathname.startsWith(prefix));
+    if (!user && needsAuth) {
       navigate('/auth');
     }
   }, [user, loading, location, navigate]);
@@ -188,15 +193,16 @@ export default function App() {
   if (loading) return <Loader />;
 
   const isPMF = location.pathname.startsWith('/pmf');
-  const showNav = !isPMF && !['/auth', '/chat/detail', '/welcome'].some(p => location.pathname.startsWith(p)) && !location.pathname.includes('/product/');
-  const showHeader = !isPMF && !['/auth', '/chat/detail', '/welcome'].some(p => location.pathname.startsWith(p)) && !location.pathname.includes('/product/');
+  const isWlAdmin = location.pathname.startsWith('/wl-admin');
+  const showNav = !isPMF && !isWlAdmin && !['/auth', '/chat/detail', '/welcome'].some(p => location.pathname.startsWith(p)) && !location.pathname.includes('/product/');
+  const showHeader = !isPMF && !isWlAdmin && !['/auth', '/chat/detail', '/welcome'].some(p => location.pathname.startsWith(p)) && !location.pathname.includes('/product/');
   const isChat = location.pathname.startsWith('/chat/detail');
   const isLanding = location.pathname.startsWith('/welcome');
 
   // Classes du conteneur principal selon la route
   let mainClass = "flex-1 overflow-y-auto pb-24 scroll-smooth";
   if (isChat) mainClass = "flex-1 overflow-hidden h-full relative";
-  if (isLanding) mainClass = "flex-1 overflow-y-auto h-full relative bg-slate-50";
+  if (isLanding) mainClass = "flex-1 overflow-y-auto h-full relative bg-brand-50";
   if (isPMF) mainClass = "flex-1 overflow-y-auto";
 
   // /pmf : full-screen avec inline styles (évite le purge Tailwind en prod)
@@ -206,6 +212,19 @@ export default function App() {
         <main style={{ flex: 1, overflowY: 'auto' }}>
           <Routes>
             <Route path="/pmf" element={<Analytics />} />
+          </Routes>
+        </main>
+      </div>
+    );
+  }
+
+  // /wl-admin : full-screen layout like PMF
+  if (isWlAdmin) {
+    return (
+      <div style={{ width: '100%', minHeight: '100vh', fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
+        <main style={{ flex: 1, overflowY: 'auto' }}>
+          <Routes>
+            <Route path="/wl-admin" element={<WaitlistAdmin />} />
           </Routes>
         </main>
       </div>
@@ -231,6 +250,7 @@ export default function App() {
           <Route path="/chat/detail" element={<ChatDetail user={user} />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/welcome" element={<LandingPage />} />
+          <Route path="/wl-admin" element={<WaitlistAdmin />} />
         </Routes>
       </main>
       {showNav && <BottomNav user={user} unreadCount={unreadCount} />}

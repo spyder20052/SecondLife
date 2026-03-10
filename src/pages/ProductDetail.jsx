@@ -215,25 +215,25 @@ function ProductDetail({ products, user }) {
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-3 sm:gap-0">
                     <div className="flex-1 sm:pr-4">
                         <div className="flex gap-2 mb-3 flex-wrap">
-                            <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md shadow-indigo-200">{product.category}</span>
+                            <span className="bg-gradient-to-r from-brand-800 to-brand-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md shadow-brand-200">{product.category}</span>
                             {product.condition && <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-slate-200">{product.condition}</span>}
                         </div>
                         <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-2">{product.title}</h1>
                         <div className="flex items-center gap-1.5 text-slate-400">
-                            <MapPin size={14} className="text-indigo-500" />
+                            <MapPin size={14} className="text-brand-600" />
                             <span className="text-xs font-bold uppercase tracking-wide">{product.city || sellerData?.city || 'Localisation inconnue'}</span>
                         </div>
                     </div>
-                    <div className="text-2xl sm:text-3xl font-black text-indigo-600 tracking-tight">{product.price.toLocaleString()} <span className="text-sm align-top text-indigo-300">FCFA</span></div>
+                    <div className="text-2xl sm:text-3xl font-black text-brand-800 tracking-tight">{product.price.toLocaleString()} <span className="text-sm align-top text-brand-300">FCFA</span></div>
                 </div>
 
                 {/* Seller & Trust */}
                 <div
                     onClick={() => navigate(`/profile/${product.sellerId}`)}
-                    className="flex items-center justify-between bg-slate-50/80 p-4 rounded-2xl mb-8 border border-slate-100 cursor-pointer hover:bg-indigo-50/50 hover:border-indigo-100 transition-all active:scale-98"
+                    className="flex items-center justify-between bg-slate-50/80 p-4 rounded-2xl mb-8 border border-slate-100 cursor-pointer hover:bg-brand-50/50 hover:border-brand-100 transition-all active:scale-98"
                 >
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-indigo-600 font-bold overflow-hidden border-2 border-white">
+                        <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-brand-800 font-bold overflow-hidden border-2 border-white">
                             {product.sellerAvatar || sellerData?.photoURL ?
                                 <img src={product.sellerAvatar || sellerData?.photoURL} alt="" className="w-full h-full object-cover" />
                                 : (product.sellerName?.[0] || 'V')}
@@ -268,11 +268,11 @@ function ProductDetail({ products, user }) {
                 </div>
 
                 {/* Safety Tip */}
-                <div className="bg-indigo-50 p-4 rounded-2xl flex gap-3 items-start mb-8">
-                    <ShieldCheck size={20} className="text-indigo-600 shrink-0 mt-0.5" />
+                <div className="bg-brand-50 p-4 rounded-2xl flex gap-3 items-start mb-8">
+                    <ShieldCheck size={20} className="text-brand-800 shrink-0 mt-0.5" />
                     <div>
-                        <h4 className="text-xs font-bold text-indigo-900 mb-1">Achat sécurisé</h4>
-                        <p className="text-[10px] text-indigo-700/80 leading-relaxed">
+                        <h4 className="text-xs font-bold text-brand-900 mb-1">Achat sécurisé</h4>
+                        <p className="text-[10px] text-brand-700/80 leading-relaxed">
                             Ne payez jamais à l'avance. Rencontrez le vendeur dans un lieu public pour vérifier l'article avant l'achat.
                         </p>
                     </div>
@@ -284,7 +284,7 @@ function ProductDetail({ products, user }) {
                 {isOwner ? (
                     <div className="flex-1 flex gap-3">
                         {isSold ? (
-                            <Button onClick={() => updateProductStatus('active')} loading={markingSold} className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200">
+                            <Button onClick={() => updateProductStatus('active')} loading={markingSold} className="flex-1 py-4 bg-brand-800 hover:bg-brand-700 shadow-brand-200">
                                 <RotateCw size={18} className="mr-2" /> Remettre en vente
                             </Button>
                         ) : (
@@ -300,7 +300,7 @@ function ProductDetail({ products, user }) {
                     <Button
                         onClick={onContact}
                         disabled={isSold}
-                        className={`flex-1 py-4 text-base shadow-xl flex items-center justify-center gap-2 ${isSold ? 'opacity-50 grayscale cursor-not-allowed' : 'shadow-indigo-200 bg-gradient-to-r from-indigo-600 to-indigo-700'}`}
+                        className={`flex-1 py-4 text-base shadow-xl flex items-center justify-center gap-2 ${isSold ? 'opacity-50 grayscale cursor-not-allowed' : 'shadow-brand-200 bg-gradient-to-r from-brand-800 to-brand-700'}`}
                     >
                         {isSold ? (
                             <>Cet article est vendu</>
